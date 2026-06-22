@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StagePass - สมัครสมาชิก</title>
+<link rel="stylesheet" href="ticket.css">
+</head>
+<body>
+<header class="site-header">
+    <nav class="nav">
+        <a class="brand" href="index.html">StagePass</a>
+        <div class="nav-actions">
+            <a class="nav-link" href="login.html">เข้าสู่ระบบ</a>
+            <a class="nav-link signup" href="register.html">สมัครสมาชิก</a>
+        </div>
+    </nav>
+    <div class="subline"></div>
+</header>
+
+<main class="login-page">
+    <section class="account-card">
+        <div class="account-copy">
+            <div class="eyebrow">Ticket News Access</div>
+            <h1>สมัครสมาชิกเพื่อรับข่าวสารบัตรก่อนใคร</h1>
+            <p>เลือกแนวอีเว้นท์ที่ชอบ แล้วใช้บัญชีนี้สำหรับติดตามข่าวเปิดขายบัตร คิวพรีเซลล์ และประกาศสำคัญจากงานที่สนใจ</p>
+            <ul class="benefit-list">
+                <li>แจ้งเตือนรอบเปิดขายและรอบเพิ่มที่นั่งของอีเว้นท์ยอดนิยม</li>
+                <li>รับข่าวคอนเสิร์ต งานเทศกาล และแฟนมีตติ้งตามหมวดที่เลือก</li>
+                <li>เก็บรายชื่ออีเว้นท์ที่สนใจไว้เพื่อกลับมาซื้อบัตรได้สะดวกขึ้น</li>
+            </ul>
+            <p class="account-switch">มีบัญชีอยู่แล้ว? <a href="login.html">เข้าสู่ระบบ</a></p>
+        </div>
+        <form class="form account-form" id="registerForm">
+            <h2>สมัครสมาชิก</h2>
+            <input type="text" placeholder="ชื่อสมาชิก">
+            <input type="email" placeholder="อีเมลรับข่าวสารบัตร">
+            <input type="text" placeholder="แนวอีเว้นท์ที่สนใจ เช่น คอนเสิร์ต / กีฬา / เทศกาล">
+            <input type="password" placeholder="รหัสผ่าน">
+            <button class="button" type="submit">สมัครสมาชิก</button>
+            <div class="account-note" id="registerNote">กรอกข้อมูลแล้วกดสมัครเพื่อเปิดรับข่าวสารบัตรอีเว้นท์</div>
+        </form>
+    </section>
+</main>
+
+<script>
+document.getElementById("registerForm").addEventListener("submit", function(event){
+    event.preventDefault();
+    document.getElementById("registerNote").textContent = "สมัครสมาชิกแล้ว ระบบจะส่งข่าวสารบัตรและประกาศอีเว้นท์ที่เกี่ยวข้องไปยังอีเมลที่ระบุ";
+});
+</script>
+<script src="ticket-sim.js"></script>
+<script src="../challenge-bridge.js"></script>
+</body>
+</html>

@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="เลือกห้องปฏิบัติการจำลองความปลอดภัยเว็บไซต์ข่าวสาร ร้านค้าออนไลน์ และระบบจำหน่ายตั๋ว">
+<title>Simulation Laboratory | Web Security Simulation Lab</title>
+
+<style>
+:root{
+    --ink:#18211d;
+    --muted:#5d6862;
+    --paper:#ffffff;
+    --soft:#f2f5f3;
+    --line:#d5ddd8;
+    --green:#176b43;
+    --green-dark:#0d432b;
+    --amber:#b56a14;
+    --cyan:#176b78;
+    --nav:#111714;
+}
+
+*{
+    box-sizing:border-box;
+    letter-spacing:0;
+}
+
+html{
+    scroll-behavior:smooth;
+}
+
+body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:Arial,"Noto Sans Thai",sans-serif;
+    line-height:1.65;
+}
+
+.site-header{
+    min-height:62px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:24px;
+    padding:0 max(24px,calc((100vw - 1180px) / 2));
+    background:var(--nav);
+    color:#fff;
+    border-bottom:1px solid rgba(255,255,255,.14);
+    position:relative;
+    z-index:10;
+}
+
+.brand{
+    min-height:62px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    color:#fff;
+    text-decoration:none;
+    font-weight:700;
+}
+
+.brand-mark{
+    width:30px;
+    height:30px;
+    display:grid;
+    place-items:center;
+    border:1px solid rgba(116,255,155,.55);
+    color:#74ff9b;
+    font:700 12px Consolas,"Courier New",monospace;
+}
+
+.brand-name{
+    font-size:14px;
+}
+
+.navbar{
+    display:flex;
+    align-items:center;
+    gap:4px;
+}
+
+.navbar > a{
+    min-height:62px;
+    display:inline-flex;
+    align-items:center;
+    padding:0 15px;
+    color:#dce3df;
+    text-decoration:none;
+    border-bottom:3px solid transparent;
+    font-size:14px;
+}
+
+.navbar > a:hover,
+.navbar > a.active{
+    color:#fff;
+    border-bottom-color:#74ff9b;
+}
+
+.navbar .challenge-entry{
+    min-height:auto;
+    margin-left:8px;
+    padding:7px 9px;
+    gap:6px;
+    color:#74ff9b;
+    border:1px solid rgba(116,255,155,.28);
+    background:#0b0f0d;
+    font:11px Consolas,"Courier New",monospace;
+    opacity:.62;
+    animation:challengeWiggle 2.4s infinite;
+}
+
+.navbar .challenge-entry:hover{
+    opacity:1;
+    border-bottom-color:rgba(116,255,155,.28);
+}
+
+.challenge-entry strong{
+    font-size:15px;
+}
+
+@keyframes challengeWiggle{
+    0%,86%,100%{transform:translateY(0) rotate(0deg)}
+    89%{transform:translateY(-1px) rotate(-4deg)}
+    92%{transform:translateY(1px) rotate(4deg)}
+    95%{transform:translateY(-1px) rotate(-2deg)}
+}
+
+.section-inner{
+    width:min(1180px,calc(100% - 48px));
+    margin:0 auto;
+}
+
+.page-intro{
+    padding:76px 0 62px;
+    background:#edf2ef;
+    border-bottom:1px solid var(--line);
+}
+
+.breadcrumb{
+    margin:0 0 18px;
+    color:var(--green);
+    font:700 12px Consolas,"Courier New",monospace;
+    text-transform:uppercase;
+}
+
+.page-intro-grid{
+    display:grid;
+    grid-template-columns:minmax(0,1.2fr) minmax(300px,.8fr);
+    gap:70px;
+    align-items:end;
+}
+
+.page-intro h1{
+    margin:0;
+    max-width:720px;
+    font-size:54px;
+    line-height:1.1;
+}
+
+.page-intro p{
+    margin:0;
+    color:var(--muted);
+    font-size:17px;
+}
+
+.readiness-strip{
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    border-bottom:1px solid var(--line);
+}
+
+.readiness-item{
+    min-height:112px;
+    padding:22px 26px;
+    border-right:1px solid var(--line);
+}
+
+.readiness-item:last-child{
+    border-right:0;
+}
+
+.readiness-item strong{
+    display:block;
+    margin-bottom:4px;
+    font-size:14px;
+}
+
+.readiness-item span{
+    color:var(--muted);
+    font-size:13px;
+}
+
+.catalog{
+    padding:72px 0 78px;
+}
+
+.section-heading{
+    display:grid;
+    grid-template-columns:minmax(220px,.7fr) minmax(0,1.3fr);
+    gap:56px;
+    align-items:start;
+}
+
+.section-kicker{
+    margin:0 0 8px;
+    color:var(--green);
+    font:700 12px Consolas,"Courier New",monospace;
+    text-transform:uppercase;
+}
+
+.section-heading h2{
+    margin:0;
+    font-size:32px;
+    line-height:1.25;
+}
+
+.section-heading p{
+    margin:0;
+    color:var(--muted);
+    font-size:16px;
+}
+
+.lab-grid{
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:18px;
+    margin-top:38px;
+}
+
+.lab-card{
+    min-height:520px;
+    display:flex;
+    flex-direction:column;
+    justify-content:flex-end;
+    position:relative;
+    isolation:isolate;
+    overflow:hidden;
+    padding:26px;
+    border:1px solid rgba(255,255,255,.28);
+    border-radius:7px;
+    color:#fff;
+    background-size:cover;
+    background-position:center;
+    box-shadow:0 12px 30px rgba(20,32,26,.13);
+}
+
+.lab-card::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    z-index:-1;
+    background:rgba(5,11,8,.7);
+    transition:background .2s ease;
+}
+
+.lab-card:hover::before{
+    background:rgba(5,11,8,.61);
+}
+
+.lab-news{
+    background-image:url("assets/lab-news.png");
+}
+
+.lab-shop{
+    background-image:url("assets/lab-shop.png");
+}
+
+.lab-ticket{
+    background-image:url("assets/lab-ticket.png");
+}
+
+.lab-code{
+    color:#9ff7bc;
+    font:700 11px Consolas,"Courier New",monospace;
+}
+
+.lab-card:nth-child(2) .lab-code{
+    color:#9fe5ef;
+}
+
+.lab-card:nth-child(3) .lab-code{
+    color:#f2bd73;
+}
+
+.lab-card h3{
+    margin:12px 0 8px;
+    font-size:27px;
+    line-height:1.2;
+}
+
+.lab-summary{
+    margin:0;
+    min-height:92px;
+    color:#e0e8e3;
+    font-size:14px;
+}
+
+.lab-tags{
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+    margin:18px 0;
+}
+
+.lab-tags span{
+    padding:4px 7px;
+    border:1px solid rgba(255,255,255,.3);
+    background:rgba(0,0,0,.24);
+    font:11px Consolas,"Courier New",monospace;
+}
+
+.lab-details{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    padding:15px 0;
+    border-top:1px solid rgba(255,255,255,.25);
+    color:#d5ded9;
+    font-size:12px;
+}
+
+.lab-details strong{
+    display:block;
+    color:#fff;
+}
+
+.lab-button{
+    min-height:43px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-top:10px;
+    padding:10px 13px;
+    border:1px solid rgba(255,255,255,.52);
+    border-radius:4px;
+    color:#fff;
+    background:rgba(0,0,0,.28);
+    text-decoration:none;
+    font-weight:700;
+    font-size:13px;
+}
+
+.lab-button:hover{
+    background:#fff;
+    color:#102019;
+}
+
+.comparison{
+    padding:72px 0;
+    background:var(--soft);
+    border-top:1px solid var(--line);
+    border-bottom:1px solid var(--line);
+}
+
+.table-wrap{
+    margin-top:34px;
+    overflow-x:auto;
+    border-top:2px solid var(--green);
+}
+
+table{
+    width:100%;
+    min-width:760px;
+    border-collapse:collapse;
+    background:#fff;
+}
+
+th,
+td{
+    padding:16px 18px;
+    border-bottom:1px solid var(--line);
+    border-right:1px solid var(--line);
+    text-align:left;
+    vertical-align:top;
+    font-size:13px;
+}
+
+th:last-child,
+td:last-child{
+    border-right:0;
+}
+
+th{
+    background:#18211d;
+    color:#fff;
+    font-size:12px;
+}
+
+td:first-child{
+    font-weight:700;
+}
+
+.selection-guide{
+    padding:70px 0;
+    background:#15211b;
+    color:#eef5f1;
+}
+
+.selection-guide .section-kicker{
+    color:#84dca4;
+}
+
+.selection-grid{
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:26px;
+    margin-top:36px;
+}
+
+.selection-item{
+    padding-top:17px;
+    border-top:2px solid #84dca4;
+}
+
+.selection-item:nth-child(2){
+    border-top-color:#67c1d0;
+}
+
+.selection-item:nth-child(3){
+    border-top-color:#e0a85e;
+}
+
+.selection-item strong{
+    display:block;
+    margin-bottom:7px;
+}
+
+.selection-item p{
+    margin:0;
+    color:#c7d2cc;
+    font-size:14px;
+}
+
+.scope-band{
+    padding:34px 0;
+    border-bottom:1px solid var(--line);
+}
+
+.scope-band p{
+    margin:0;
+    padding-left:18px;
+    border-left:4px solid var(--green);
+    color:#425048;
+}
+
+.site-footer{
+    padding:28px 0;
+    background:#0e1411;
+    color:#b9c5be;
+    font-size:12px;
+}
+
+.footer-inner{
+    display:flex;
+    justify-content:space-between;
+    gap:24px;
+}
+
+.footer-inner p{
+    margin:0;
+}
+
+@media (max-width:940px){
+    .page-intro-grid,
+    .section-heading{
+        grid-template-columns:1fr;
+        gap:20px;
+    }
+
+    .lab-grid{
+        grid-template-columns:1fr;
+    }
+
+    .lab-card{
+        min-height:460px;
+        background-position:center 36%;
+    }
+}
+
+@media (max-width:820px){
+    .site-header{
+        align-items:flex-start;
+        flex-direction:column;
+        gap:0;
+        padding:0 20px 10px;
+    }
+
+    .navbar{
+        width:100%;
+        overflow-x:auto;
+    }
+
+    .navbar > a{
+        min-height:44px;
+        padding:0 12px;
+        white-space:nowrap;
+    }
+
+    .navbar .challenge-entry span{
+        display:none;
+    }
+
+    .readiness-strip,
+    .selection-grid{
+        grid-template-columns:1fr;
+    }
+
+    .readiness-item{
+        min-height:auto;
+        border-right:0;
+        border-bottom:1px solid var(--line);
+    }
+
+    .readiness-item:last-child{
+        border-bottom:0;
+    }
+
+    .footer-inner{
+        flex-direction:column;
+    }
+}
+
+@media (max-width:520px){
+    .section-inner{
+        width:min(100% - 32px,1180px);
+    }
+
+    .page-intro{
+        padding:54px 0 46px;
+    }
+
+    .page-intro h1{
+        font-size:39px;
+    }
+
+    .catalog,
+    .comparison,
+    .selection-guide{
+        padding:54px 0;
+    }
+
+    .section-heading h2{
+        font-size:27px;
+    }
+
+    .lab-card{
+        min-height:500px;
+        padding:22px;
+    }
+}
+</style>
+</head>
+
+<body>
+<header class="site-header">
+    <a class="brand" href="index.html" aria-label="Web Security Simulation Lab หน้าแรก">
+        <span class="brand-mark" aria-hidden="true">WS</span>
+        <span class="brand-name">Web Security Simulation Lab</span>
+    </a>
+    <nav class="navbar" aria-label="เมนูหลัก">
+        <a href="index.html">Home</a>
+        <a href="index.html#path-title">Security Fundamentals</a>
+        <a class="active" href="simulation.html" aria-current="page">Simulation</a>
+        <a href="index.html#project-title">About</a>
+        <a class="challenge-entry" href="challenge-lab.html" aria-label="Challenge Mode" title="Challenge Mode"><strong>!</strong><span>challenge mode</span></a>
+    </nav>
+</header>
+
+<main>
+    <section class="page-intro" aria-labelledby="page-title">
+        <div class="section-inner">
+            <p class="breadcrumb">Home / Simulation Laboratory</p>
+            <div class="page-intro-grid">
+                <h1 id="page-title">เลือกห้องปฏิบัติการจำลอง</h1>
+                <p>แต่ละ Lab จำลองเว็บไซต์และข้อมูลสำคัญคนละประเภท ผู้ใช้สามารถทดลองทั้งมุมมองการโจมตีและการป้องกัน พร้อมตรวจผลที่เกิดขึ้นบนหน้าเว็บและระบบหลังบ้าน</p>
+            </div>
+        </div>
+    </section>
+
+    <div class="readiness-strip section-inner" aria-label="ข้อมูลก่อนเริ่ม Lab">
+        <div class="readiness-item"><strong>พื้นที่จำลองแยกจากระบบจริง</strong><span>คำสั่งทั้งหมดทำงานกับสถานะภายใน Lab เท่านั้น</span></div>
+        <div class="readiness-item"><strong>ไม่จัดเก็บข้อมูลส่วนบุคคล</strong><span>บัญชี ธุรกรรม ที่อยู่ และข้อมูลบัตรเป็นข้อมูลสมมติ</span></div>
+        <div class="readiness-item"><strong>เลือกบทบาทได้</strong><span>เรียนรู้ผลกระทบจากฝ่ายโจมตีและขั้นตอนตอบสนองจากฝ่ายป้องกัน</span></div>
+    </div>
+
+    <section class="catalog" aria-labelledby="catalog-title">
+        <div class="section-inner">
+            <div class="section-heading">
+                <div>
+                    <p class="section-kicker">Laboratory Catalog</p>
+                    <h2 id="catalog-title">สามระบบที่มีข้อมูลและความเสี่ยงต่างกัน</h2>
+                </div>
+                <p>เริ่มจากระบบที่สนใจได้ทันที แต่ละห้องมี Mission Console, Command Reference, Command Input, Situation Panel และ Operation Log เป็นโครงร่วมกัน ส่วนอาการและชุดคำสั่งจะเปลี่ยนตามบริบทของเว็บไซต์</p>
+            </div>
+
+            <div class="lab-grid">
+                <article class="lab-card lab-news">
+                    <span class="lab-code">LAB-01 / CONTENT INTEGRITY</span>
+                    <h3>เว็บไซต์ข่าวสาร</h3>
+                    <p class="lab-summary">ตรวจการเปลี่ยนแปลงเนื้อหา หน้าแรก และองค์ประกอบที่ถูกแทรก พร้อมทดลองจำกัดเส้นทางเผยแพร่และคืนค่าข้อมูลที่เชื่อถือได้</p>
+                    <div class="lab-tags"><span>CONTENT</span><span>PUBLISH</span><span>BASELINE</span></div>
+                    <div class="lab-details">
+                        <div><strong>บทบาท</strong>โจมตี / ป้องกัน</div>
+                        <div><strong>เวลาโดยประมาณ</strong>2–5 นาที</div>
+                        <div><strong>จุดสังเกต</strong>หน้าแรกและบทความ</div>
+                        <div><strong>ระดับ</strong>พื้นฐาน</div>
+                    </div>
+                    <a class="lab-button" href="news-lab.html"><span>เปิด News Lab</span><span aria-hidden="true">→</span></a>
+                </article>
+
+                <article class="lab-card lab-shop">
+                    <span class="lab-code">LAB-02 / DATA &amp; TRANSACTION</span>
+                    <h3>เว็บไซต์ขายสินค้า</h3>
+                    <p class="lab-summary">ตรวจการเข้าถึงข้อมูลลูกค้า การเปลี่ยนบัญชี และความผิดปกติของราคา คำสั่งซื้อ และสถานะการชำระเงินในระบบร้านค้า</p>
+                    <div class="lab-tags"><span>CUSTOMER</span><span>CHECKOUT</span><span>SERVER PRICE</span></div>
+                    <div class="lab-details">
+                        <div><strong>บทบาท</strong>โจมตี / ป้องกัน</div>
+                        <div><strong>เวลาโดยประมาณ</strong>2–5 นาที</div>
+                        <div><strong>จุดสังเกต</strong>บัญชีและ Checkout</div>
+                        <div><strong>ระดับ</strong>ปานกลาง</div>
+                    </div>
+                    <a class="lab-button" href="shop-lab.html"><span>เปิด Shop Lab</span><span aria-hidden="true">→</span></a>
+                </article>
+
+                <article class="lab-card lab-ticket">
+                    <span class="lab-code">LAB-03 / INVENTORY &amp; IDENTITY</span>
+                    <h3>เว็บไซต์ขายตั๋ว</h3>
+                    <p class="lab-summary">ตรวจการข้ามการล็อกตั๋ว การซื้อจำนวนมากในช่วงเวลาสั้น และความสัมพันธ์ระหว่างผู้ซื้อ คิว และจำนวนตั๋วใน inventory</p>
+                    <div class="lab-tags"><span>INVENTORY</span><span>QUEUE</span><span>IDENTITY</span></div>
+                    <div class="lab-details">
+                        <div><strong>บทบาท</strong>โจมตี / ป้องกัน</div>
+                        <div><strong>เวลาโดยประมาณ</strong>2–5 นาที</div>
+                        <div><strong>จุดสังเกต</strong>จำนวนตั๋วและคิว</div>
+                        <div><strong>ระดับ</strong>ปานกลาง</div>
+                    </div>
+                    <a class="lab-button" href="ticket-lab.html"><span>เปิด Ticket Lab</span><span aria-hidden="true">→</span></a>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <section class="comparison" aria-labelledby="compare-title">
+        <div class="section-inner">
+            <div class="section-heading">
+                <div>
+                    <p class="section-kicker">Lab Comparison</p>
+                    <h2 id="compare-title">เปรียบเทียบก่อนเลือก</h2>
+                </div>
+                <p>ความผิดปกติบางประเภทเห็นได้จากหน้าเว็บไซต์ทันที ขณะที่ข้อมูลลูกค้า ราคา หรือ inventory ต้องตรวจผ่านจอระบบภายใน ตารางนี้ช่วยแยกจุดเน้นของแต่ละห้อง</p>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr><th>Lab</th><th>ข้อมูลสำคัญ</th><th>ผลกระทบที่สังเกต</th><th>แนวคิดการป้องกัน</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>News</td><td>เนื้อหา, หน้าแรก, publish state</td><td>ข้อความเปลี่ยน โทนข่าวผิดปกติ องค์ประกอบถูกแทรก</td><td>Content integrity, baseline verification, recovery</td></tr>
+                        <tr><td>Shop</td><td>ข้อมูลลูกค้า, ราคา, order state</td><td>บัญชีผิดปกติ ราคาไม่ตรง หรือข้ามลำดับ checkout</td><td>Access control, server-side validation, ordered verification</td></tr>
+                        <tr><td>Ticket</td><td>จำนวนตั๋ว, queue, identity</td><td>ตั๋วขายเกิน หมดเร็ว หรือผู้ใช้ทั่วไปซื้อไม่ได้</td><td>Inventory synchronization, identity enforcement, purchase control</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <section class="selection-guide" aria-labelledby="guide-title">
+        <div class="section-inner">
+            <p class="section-kicker">Selection Guide</p>
+            <h2 id="guide-title">เลือกตามสิ่งที่ต้องการฝึกสังเกต</h2>
+            <div class="selection-grid">
+                <div class="selection-item"><strong>ต้องการเห็นผลบนหน้าเว็บชัดเจน</strong><p>เริ่มจาก News Lab เพื่อสังเกตเนื้อหาและหน้าแรกที่เปลี่ยนไปตามคำสั่ง</p></div>
+                <div class="selection-item"><strong>ต้องการเข้าใจข้อมูลหลังบ้าน</strong><p>เลือก Shop Lab เพื่อเชื่อมหน้าร้านเข้ากับบัญชีลูกค้า ราคา และคำสั่งซื้อ</p></div>
+                <div class="selection-item"><strong>ต้องการวิเคราะห์ระบบแบบเวลาเร่ง</strong><p>เลือก Ticket Lab เพื่อดูคิว คำขอจำนวนมาก และ inventory ที่เปลี่ยนอย่างรวดเร็ว</p></div>
+            </div>
+        </div>
+    </section>
+
+    <section class="scope-band">
+        <div class="section-inner">
+            <p><strong>หมายเหตุด้านจริยธรรม:</strong> ห้องจำลองมีไว้เพื่อศึกษาแนวคิดด้านความปลอดภัยและการตอบสนองต่อเหตุการณ์ในระบบที่ได้รับอนุญาตเท่านั้น ไม่ควรนำกระบวนการไปทดสอบกับเว็บไซต์หรือข้อมูลของบุคคลอื่น</p>
+        </div>
+    </section>
+</main>
+
+<footer class="site-footer">
+    <div class="section-inner footer-inner">
+        <p><strong>Web Security Simulation Lab</strong> — ห้องปฏิบัติการจำลองความปลอดภัยเว็บไซต์</p>
+        <p>ข้อมูล ผู้ใช้ และธุรกรรมทั้งหมดเป็นข้อมูลจำลอง</p>
+    </div>
+</footer>
+</body>
+</html>

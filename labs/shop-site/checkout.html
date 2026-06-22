@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GreenNest - ชำระเงิน</title>
+<link rel="stylesheet" href="shop.css">
+</head>
+<body>
+<header class="site-header">
+    <nav class="nav">
+        <div class="menu-icon"><span></span><span></span><span></span></div>
+        <a class="logo-mark" href="index.html" aria-label="GreenNest"><span></span></a>
+        <a class="optional" href="products.html">สินค้า</a>
+        <a class="optional" href="login.html">เข้าสู่ระบบ</a>
+        <a class="optional" href="cart.html">ตะกร้า</a>
+        <a class="cart-icon" href="cart.html" aria-label="ตะกร้า">C</a>
+    </nav>
+    <div class="subline"></div>
+</header>
+
+<main class="page">
+    <div class="checkout-grid">
+        <section class="panel">
+            <h2>ข้อมูลชำระเงิน</h2>
+            <p class="muted">ฟอร์มนี้เป็นตัวอย่างสำหรับกรอกเท่านั้น ไม่มีการบันทึกหรือส่งข้อมูลจริง</p>
+
+            <form class="form" id="checkoutForm">
+                <input type="text" placeholder="ชื่อ-นามสกุล">
+                <input type="text" placeholder="ที่อยู่จัดส่ง">
+                <input type="tel" placeholder="เบอร์โทรศัพท์">
+                <select>
+                    <option>โอนผ่านธนาคาร</option>
+                    <option>บัตรเครดิตจำลอง</option>
+                    <option>เก็บเงินปลายทางจำลอง</option>
+                </select>
+                <input type="text" placeholder="เลขบัตร / เลขอ้างอิงจำลอง">
+                <textarea placeholder="หมายเหตุถึงร้านค้า"></textarea>
+                <button class="button primary" type="submit">ยืนยันการชำระเงิน</button>
+            </form>
+
+            <div class="success-note" id="successNote">ระบบจำลองรับข้อมูลแล้ว แต่ไม่ได้จัดเก็บหรือส่งข้อมูลไปที่ใด</div>
+        </section>
+
+        <aside class="panel">
+            <h2>สรุปคำสั่งซื้อ</h2>
+            <div id="orderSummary"></div>
+            <p class="muted">ใช้สำหรับจำลองหน้าชำระเงินในเว็บขายสินค้าเท่านั้น</p>
+        </aside>
+    </div>
+</main>
+
+<script src="shop-data.js"></script>
+<script>
+const orderSummary = document.getElementById("orderSummary");
+const items = window.ShopCart.read();
+
+if(!items.length){
+    orderSummary.innerHTML = `<div class="summary-line"><span>ยังไม่มีสินค้าในตะกร้า</span><strong>${window.formatBaht(0)}</strong></div>`;
+}else{
+    const lines = items.map(function(item){
+        const product = window.ShopProducts[item.id];
+        if(!product) return "";
+        return `<div class="summary-line"><span>${product.name} x ${item.quantity}</span><strong>${window.formatBaht(product.price * item.quantity)}</strong></div>`;
+    }).join("");
+    const totals = window.ShopCart.totals();
+    orderSummary.innerHTML = lines + `
+        <div class="summary-line"><span>ค่าจัดส่ง</span><strong>${window.formatBaht(totals.shipping)}</strong></div>
+        <div class="summary-line"><span>ยอดรวมทั้งหมด</span><strong>${window.formatBaht(totals.total)}</strong></div>
+    `;
+}
+
+document.getElementById("checkoutForm").addEventListener("submit", function(event){
+    event.preventDefault();
+    document.getElementById("successNote").classList.add("show");
+});
+</script>
+<script src="shop-sim.js"></script>
+<script src="../challenge-bridge.js"></script>
+</body>
+</html>

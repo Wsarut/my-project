@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StagePass - หน้าแรก</title>
+<link rel="stylesheet" href="ticket.css">
+</head>
+<body>
+<header class="site-header">
+    <nav class="nav">
+        <a class="brand" href="index.html">StagePass</a>
+        <div class="nav-actions">
+            <a class="nav-link" href="login.html">เข้าสู่ระบบ</a>
+            <a class="nav-link signup" href="register.html">สมัครสมาชิก</a>
+        </div>
+    </nav>
+    <div class="subline"></div>
+</header>
+
+<main class="page">
+    <section class="hero">
+        <div>
+            <h1>ค้นหาบัตรคอนเสิร์ต งานเทศกาล และโชว์สดใกล้คุณ</h1>
+            <p>เลือกอีเว้นท์ที่ชอบ ตรวจราคา ดูสถานที่จัดงาน แล้วไปหน้าซื้อตั๋วได้ทันที ออกแบบให้ได้กลิ่นอายเว็บขายตั๋วขนาดใหญ่แต่ยังใช้งานง่าย</p>
+        </div>
+        <div class="search-box">
+            <strong>ค้นหาอีเว้นท์</strong>
+            <input id="eventSearch" type="text" placeholder="พิมพ์ชื่อศิลปินหรืออีเว้นท์ เช่น Luna Blue">
+            <button class="button" id="searchButton" type="button">ค้นหาบัตร</button>
+            <div class="search-hint" id="searchHint">ค้นหาได้จากชื่อศิลปิน ชื่อทัวร์ หรือสถานที่จัดงาน</div>
+        </div>
+    </section>
+
+    <section>
+        <div class="section-title">อีเว้นท์แนะนำ</div>
+        <div class="event-grid featured-grid" id="featuredGrid"></div>
+    </section>
+
+    <section>
+        <div class="section-title">อีเว้นท์ทั้งหมด</div>
+        <div class="event-grid all-event-grid" id="allEventGrid"></div>
+    </section>
+</main>
+
+<script src="ticket-data.js"></script>
+<script>
+const events = Object.entries(window.TicketEvents);
+const featuredIds = ["luna", "river", "neon"];
+const featuredGrid = document.getElementById("featuredGrid");
+const allEventGrid = document.getElementById("allEventGrid");
+const eventSearch = document.getElementById("eventSearch");
+const searchButton = document.getElementById("searchButton");
+const searchHint = document.getElementById("searchHint");
+
+function eventCard(id, eventData){
+    return `
+        <a class="event-card" href="event.html?id=${id}">
+            <img src="${eventData.image}" alt="${eventData.title}">
+            <div class="event-body">
+                <strong>${eventData.artist}</strong>
+                <span class="muted">${eventData.title}</span>
+                <span>${eventData.venue} • ${eventData.date}</span>
+                <span class="price-text">${window.formatTicketPrice(eventData.price)}</span>
+            </div>
+        </a>
+    `;
+}
+
+featuredGrid.innerHTML = featuredIds.map(function(id){
+    return eventCard(id, window.TicketEvents[id]);
+}).join("");
+
+allEventGrid.innerHTML = events.map(function(entry){
+    return eventCard(entry[0], entry[1]);
+}).join("");
+
+function runSearch(){
+    const query = eventSearch.value.trim().toLowerCase();
+    if(!query){
+        searchHint.textContent = "พิมพ์ชื่อศิลปินหรืออีเว้นท์ก่อนค้นหา";
+        return;
+    }
+
+    const found = events.find(function(entry){
+        const eventData = entry[1];
+        const haystack = [eventData.artist, eventData.title, eventData.venue, eventData.date].join(" ").toLowerCase();
+        return haystack.includes(query);
+    });
+
+    if(found){
+        location.href = "event.html?id=" + found[0];
+    }else{
+        searchHint.textContent = "ยังไม่พบอีเว้นท์ที่ตรงกับคำค้น ลองค้นชื่อศิลปินหรือสถานที่อื่น";
+    }
+}
+
+searchButton.addEventListener("click", runSearch);
+eventSearch.addEventListener("keydown", function(event){
+    if(event.key === "Enter"){
+        runSearch();
+    }
+});
+</script>
+<script src="ticket-sim.js"></script>
+<script src="../challenge-bridge.js"></script>
+</body>
+</html>

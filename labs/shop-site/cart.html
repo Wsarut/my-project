@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GreenNest - ตะกร้า</title>
+<link rel="stylesheet" href="shop.css">
+</head>
+<body>
+<header class="site-header">
+    <nav class="nav">
+        <div class="menu-icon"><span></span><span></span><span></span></div>
+        <a class="logo-mark" href="index.html" aria-label="GreenNest"><span></span></a>
+        <a class="optional" href="products.html">สินค้า</a>
+        <a class="optional" href="login.html">เข้าสู่ระบบ</a>
+        <a class="optional" href="cart.html">ตะกร้า</a>
+        <a class="cart-icon" href="cart.html" aria-label="ตะกร้า">C</a>
+    </nav>
+    <div class="subline"></div>
+</header>
+
+<main class="cart-page">
+    <section class="page">
+        <div class="cart-list" id="cartList"></div>
+    </section>
+
+    <section class="cart-summary">
+        <div id="cartTotals"></div>
+        <a class="button primary" id="checkoutButton" href="checkout.html">ชำระเงิน</a>
+    </section>
+</main>
+
+<script src="shop-data.js"></script>
+<script>
+const cartList = document.getElementById("cartList");
+const cartTotals = document.getElementById("cartTotals");
+const checkoutButton = document.getElementById("checkoutButton");
+
+function renderCart(){
+    const items = window.ShopCart.read();
+
+    if(!items.length){
+        cartList.innerHTML = `
+            <div class="panel">
+                <h2>ตะกร้ายังว่าง</h2>
+                <p class="muted">เลือกสินค้าจากหน้ารายการสินค้า แล้วกดเพิ่มลงตะกร้าจากหน้ารายละเอียดสินค้า</p>
+                <p><a class="button primary" href="products.html">ไปเลือกสินค้า</a></p>
+            </div>
+        `;
+        cartTotals.innerHTML = `<p><strong>ยอดรวม</strong> ${window.formatBaht(0)}</p><p class="muted">ค่าจัดส่ง ${window.formatBaht(0)}</p>`;
+        checkoutButton.style.display = "none";
+        return;
+    }
+
+    checkoutButton.style.display = "";
+    cartList.innerHTML = items.map(function(item, index){
+        const product = window.ShopProducts[item.id];
+        if(!product) return "";
+        const lineTotal = product.price * item.quantity;
+        return `
+            <div class="cart-item">
+                <div class="cart-photo"><img src="${product.image}" alt="${product.name}"></div>
+                <div>
+                    <h3>${product.name}</h3>
+                    <p class="muted">${product.category} - ${item.delivery}</p>
+                    <p class="price">${window.formatBaht(product.price)} x ${item.quantity} = ${window.formatBaht(lineTotal)}</p>
+                </div>
+                <div class="cart-line-actions">
+                    <div class="cart-controls" aria-label="ปรับจำนวนสินค้า">
+                        <button class="qty-button" type="button" data-action="decrease" data-index="${index}">-</button>
+                        <span class="qty-number">${item.quantity}</span>
+                        <button class="qty-button" type="button" data-action="increase" data-index="${index}">+</button>
+                    </div>
+                    <span class="muted">เพิ่ม/ลดจำนวน</span>
+                </div>
+            </div>
+        `;
+    }).join("");
+
+    const totals = window.ShopCart.totals();
+    cartTotals.innerHTML = `
+        <p><strong>ยอดรวม</strong> ${window.formatBaht(totals.subtotal)}</p>
+        <p class="muted">ค่าจัดส่ง ${window.formatBaht(totals.shipping)}</p>
+    `;
+}
+
+cartList.addEventListener("click", function(event){
+    const button = event.target.closest("[data-action]");
+    if(!button) return;
+
+    const items = window.ShopCart.read();
+    const index = Number(button.dataset.index);
+    const item = items[index];
+    if(!item) return;
+
+    if(button.dataset.action === "increase"){
+        item.quantity += 1;
+    }
+
+    if(button.dataset.action === "decrease"){
+        item.quantity -= 1;
+        if(item.quantity <= 0){
+            items.splice(index, 1);
+        }
+    }
+
+    window.ShopCart.write(items);
+    renderCart();
+});
+
+renderCart();
+</script>
+<script src="shop-sim.js"></script>
+<script src="../challenge-bridge.js"></script>
+</body>
+</html>

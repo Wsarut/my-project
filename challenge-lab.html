@@ -1,0 +1,3919 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Challenge Mode</title>
+
+<style>
+:root{
+    --bg:#050806;
+    --panel:#09130e;
+    --panel-2:#0e1b14;
+    --green:#74ff9b;
+    --green-dim:#1f8f50;
+    --amber:#ffcf6a;
+    --red:#ff4b5c;
+    --line:rgba(116,255,155,.28);
+    --text:#d7ffe1;
+    --muted:#7da98a;
+}
+
+*{box-sizing:border-box}
+
+html,
+body{
+    min-height:100%;
+}
+
+body{
+    margin:0;
+    font-family:Arial, sans-serif;
+    background:
+        radial-gradient(circle at 50% -20%, rgba(74,255,140,.14), transparent 38%),
+        radial-gradient(circle at 12% 88%, rgba(255,75,92,.08), transparent 30%),
+        linear-gradient(180deg,#020403 0%, var(--bg) 55%, #010201 100%);
+    color:var(--text);
+    overflow:hidden;
+    perspective:1200px;
+}
+
+body::before{
+    content:"";
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    z-index:50;
+    background:
+        repeating-linear-gradient(0deg, rgba(255,255,255,.045) 0 1px, transparent 1px 4px),
+        radial-gradient(circle at 50% 50%, transparent 55%, rgba(0,0,0,.48) 100%);
+    mix-blend-mode:screen;
+    opacity:.38;
+    animation:screenFlicker 5s infinite;
+}
+
+body::after{
+    content:"";
+    position:fixed;
+    inset:-20%;
+    pointer-events:none;
+    z-index:49;
+    opacity:.14;
+    background-image:
+        radial-gradient(circle at 20% 30%, rgba(255,255,255,.8) 0 1px, transparent 1px),
+        radial-gradient(circle at 76% 44%, rgba(116,255,155,.7) 0 1px, transparent 1px),
+        radial-gradient(circle at 50% 70%, rgba(255,255,255,.55) 0 1px, transparent 1px);
+    background-size:46px 46px, 71px 71px, 93px 93px;
+    animation:staticDrift .7s steps(2) infinite;
+}
+
+.boot-shutter{
+    position:fixed;
+    inset:0;
+    z-index:80;
+    pointer-events:none;
+    background:#030503;
+    animation:bootOpen 1.85s ease-out forwards;
+}
+
+.boot-shutter::before,
+.boot-shutter::after{
+    content:"";
+    position:absolute;
+    left:0;
+    width:100%;
+    height:50%;
+    background:#030503;
+    box-shadow:0 0 38px rgba(116,255,155,.28);
+}
+
+.boot-shutter::before{
+    top:0;
+    animation:shutterTop 1.45s .32s cubic-bezier(.7,0,.2,1) forwards;
+}
+
+.boot-shutter::after{
+    bottom:0;
+    animation:shutterBottom 1.45s .32s cubic-bezier(.7,0,.2,1) forwards;
+}
+
+.boot-line{
+    position:absolute;
+    left:0;
+    top:50%;
+    width:100%;
+    height:2px;
+    background:var(--green);
+    box-shadow:0 0 24px var(--green), 0 0 70px var(--green);
+    animation:bootLine 1.35s ease-out forwards;
+}
+
+.back-link{
+    position:fixed;
+    top:14px;
+    left:14px;
+    z-index:60;
+    width:34px;
+    height:34px;
+    display:grid;
+    place-items:center;
+    border:1px solid var(--line);
+    background:rgba(5,8,6,.72);
+    color:var(--green);
+    text-decoration:none;
+    font-family:Consolas, "Courier New", monospace;
+    font-size:18px;
+    box-shadow:0 0 18px rgba(116,255,155,.12);
+    opacity:.72;
+}
+
+.back-link:hover{
+    opacity:1;
+    background:rgba(116,255,155,.08);
+}
+
+.header{
+    height:58px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 22px 0 62px;
+    border-bottom:1px solid var(--line);
+    background:linear-gradient(180deg, rgba(14,27,20,.96), rgba(5,8,6,.96));
+    position:relative;
+    z-index:2;
+}
+
+.title-block{
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
+
+.status-light{
+    width:12px;
+    height:12px;
+    border-radius:50%;
+    background:var(--red);
+    box-shadow:0 0 16px var(--red);
+    animation:statusBlink 1.4s infinite;
+}
+
+.header h1{
+    margin:0;
+    font-size:20px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--green);
+    text-shadow:0 0 14px rgba(116,255,155,.52);
+}
+
+.system-readout{
+    font-family:Consolas, "Courier New", monospace;
+    font-size:12px;
+    color:var(--amber);
+}
+
+.header-status{
+    display:flex;
+    align-items:center;
+    gap:16px;
+}
+
+.challenge-timer{
+    min-width:72px;
+    border:1px solid rgba(116,255,155,.24);
+    background:rgba(0,0,0,.28);
+    color:var(--green);
+    padding:5px 8px;
+    font-family:Consolas, "Courier New", monospace;
+    font-size:13px;
+    text-align:center;
+    box-shadow:inset 0 0 14px rgba(0,0,0,.25);
+}
+
+.challenge-timer.warning{
+    color:var(--amber);
+    border-color:rgba(255,204,102,.5);
+}
+
+.paper-peek-zone{
+    position:fixed;
+    left:0;
+    top:92px;
+    bottom:0;
+    width:34px;
+    z-index:64;
+}
+
+.paper-note{
+    position:fixed;
+    top:74px;
+    left:-505px;
+    width:520px;
+    min-height:640px;
+    z-index:65;
+    color:#352719;
+    background:
+        linear-gradient(90deg, rgba(105,60,22,.13) 0 1px, transparent 1px 100%),
+        repeating-linear-gradient(0deg, transparent 0 27px, rgba(90,120,170,.28) 28px 29px),
+        radial-gradient(circle at 20% 18%, rgba(99,54,18,.2), transparent 10%),
+        radial-gradient(circle at 82% 58%, rgba(99,54,18,.18), transparent 14%),
+        linear-gradient(180deg,#ead8a3,#d9ba7a 72%,#c9a868);
+    border:1px solid rgba(70,40,20,.45);
+    box-shadow:
+        8px 18px 42px rgba(0,0,0,.48),
+        inset 0 0 30px rgba(109,73,35,.18);
+    transform:rotate(-1.4deg);
+    transition:left .78s cubic-bezier(.16,.9,.18,1), transform .78s cubic-bezier(.16,.9,.18,1);
+    cursor:pointer;
+    clip-path:polygon(
+        0 2%, 3% 0, 10% 1%, 17% 0, 25% 1.3%, 35% .2%, 46% 1.1%, 57% 0,
+        68% 1.5%, 79% .3%, 91% 1%, 100% 0,
+        98.5% 9%, 100% 17%, 98.4% 25%, 99.5% 37%, 98.2% 49%, 100% 59%,
+        98.6% 70%, 99.8% 82%, 97.8% 92%, 99% 100%,
+        88% 98.4%, 76% 100%, 64% 98.8%, 53% 99.8%, 41% 98.5%, 31% 100%,
+        19% 98.8%, 9% 99.7%, 0 97.6%,
+        1.4% 86%, .2% 75%, 1.6% 63%, .4% 52%, 1.8% 40%, .2% 30%, 1.4% 17%
+    );
+}
+
+.paper-note::before{
+    content:"";
+    position:absolute;
+    left:38px;
+    top:0;
+    bottom:0;
+    width:2px;
+    background:rgba(205,74,74,.34);
+}
+
+.paper-note::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+    background:
+        radial-gradient(circle at 18% 14%, rgba(95,54,18,.22), transparent 12%),
+        radial-gradient(circle at 64% 36%, rgba(40,22,10,.1), transparent 9%),
+        radial-gradient(circle at 84% 74%, rgba(95,54,18,.18), transparent 16%),
+        radial-gradient(circle at 8% 92%, rgba(0,0,0,.14), transparent 8%),
+        linear-gradient(120deg, transparent 0 55%, rgba(255,255,255,.2) 56%, transparent 70%);
+    mix-blend-mode:multiply;
+}
+
+.paper-peek-zone:hover ~ .paper-note:not(.open),
+.paper-note:hover:not(.open),
+.paper-note.peek:not(.open){
+    left:-468px;
+    transform:rotate(-2deg) translateX(4px);
+}
+
+.paper-note.open{
+    left:24px;
+    transform:rotate(-.6deg);
+}
+
+.paper-content{
+    position:relative;
+    z-index:1;
+    padding:34px 36px 34px 68px;
+    font-family:"Comic Sans MS","Segoe Print",cursive;
+    line-height:1.75;
+}
+
+.paper-content h2{
+    margin:0 0 12px;
+    font-size:28px;
+    text-decoration:underline;
+    text-decoration-thickness:1px;
+}
+
+.paper-content p{
+    margin:0 0 12px;
+}
+
+.paper-content ul{
+    margin:8px 0 18px;
+    padding-left:18px;
+}
+
+.paper-content li{
+    margin-bottom:7px;
+}
+
+.staples{
+    position:absolute;
+    top:20px;
+    left:50px;
+    display:grid;
+    gap:12px;
+}
+
+.staples span{
+    width:18px;
+    height:7px;
+    border:2px solid rgba(55,55,50,.7);
+    border-radius:9px;
+    transform:rotate(-8deg);
+    background:rgba(255,255,255,.24);
+}
+
+.sheet-tabs{
+    display:flex;
+    gap:8px;
+    margin:0 0 14px;
+    padding-left:6px;
+}
+
+.sheet-tab{
+    border:1px solid rgba(70,40,20,.45);
+    background:#d7bd7c;
+    color:#3b2b1a;
+    padding:7px 10px;
+    font-family:"Comic Sans MS","Segoe Print",cursive;
+    font-size:12px;
+    cursor:pointer;
+    transform:rotate(-2deg);
+    box-shadow:2px 4px 8px rgba(75,42,18,.2);
+}
+
+.sheet-tab:nth-child(2){
+    background:#d0b272;
+    transform:rotate(1.5deg);
+}
+
+.sheet-tab:nth-child(3){
+    background:#c8aa68;
+    transform:rotate(-.7deg);
+}
+
+.sheet-tab.active{
+    background:#f0dca4;
+    border-bottom-color:#f0dca4;
+    transform:translateY(2px) rotate(0deg);
+}
+
+.manual-sheet{
+    display:none;
+    min-height:475px;
+    padding:8px 2px 0;
+    position:relative;
+}
+
+.manual-sheet.active{
+    display:block;
+    animation:paperShuffle .34s cubic-bezier(.18,.9,.28,1);
+}
+
+.manual-sheet h2{
+    margin-top:4px;
+}
+
+.sheet-sub{
+    color:#5d4228;
+    font-size:14px;
+    transform:rotate(-.35deg);
+}
+
+.keyword-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+    margin:10px 0 14px;
+}
+
+.keyword-row span{
+    border:1px solid rgba(72,48,24,.36);
+    background:rgba(255,255,255,.2);
+    padding:3px 7px;
+    font-size:13px;
+    transform:rotate(-1deg);
+}
+
+.keyword-row span:nth-child(even){
+    transform:rotate(1.3deg);
+}
+
+.manual-scenario{
+    border:1px dashed rgba(70,40,20,.5);
+    background:rgba(255,255,255,.12);
+    margin:12px 0;
+    padding:10px 12px;
+    transform:rotate(-.25deg);
+}
+
+.manual-scenario:nth-of-type(even){
+    transform:rotate(.35deg);
+}
+
+.manual-scenario h3{
+    margin:0 0 6px;
+    font-size:16px;
+    color:#432713;
+}
+
+.manual-scenario p{
+    margin:0 0 8px;
+    font-size:13px;
+    line-height:1.55;
+}
+
+.manual-route{
+    font-family:Consolas, "Courier New", monospace;
+    font-size:12px;
+    line-height:1.45;
+    color:#3a2718;
+}
+
+.manual-route span{
+    display:inline-block;
+    border-bottom:1px solid rgba(58,39,24,.42);
+    margin:0 3px 4px 0;
+    padding:0 2px;
+}
+
+.hand-flow{
+    display:grid;
+    grid-template-columns:1fr 24px 1fr 24px 1fr;
+    align-items:center;
+    gap:6px;
+    margin:16px 0;
+}
+
+.flow-node{
+    border:2px solid rgba(54,38,22,.62);
+    border-radius:48% 52% 46% 54%;
+    padding:10px 8px;
+    text-align:center;
+    font-size:13px;
+    line-height:1.35;
+    background:rgba(255,255,255,.14);
+    min-height:58px;
+    display:grid;
+    place-items:center;
+    transform:rotate(-1.4deg);
+}
+
+.flow-node:nth-child(3){
+    transform:rotate(1.6deg);
+}
+
+.flow-arrow{
+    font-size:22px;
+    text-align:center;
+    color:#51361f;
+}
+
+.scribble-note{
+    border-left:3px solid rgba(70,40,20,.48);
+    padding-left:10px;
+    margin-top:14px;
+    font-size:14px;
+    transform:rotate(.45deg);
+}
+
+.crossed{
+    text-decoration:line-through;
+    text-decoration-thickness:2px;
+    text-decoration-color:rgba(95,24,20,.75);
+}
+
+.challenge-layout{
+    display:flex;
+    height:calc(100vh - 58px);
+    position:relative;
+    z-index:1;
+    animation:roomZoomOut 2.25s .18s cubic-bezier(.17,.84,.2,1) both;
+    transform-origin:38% 48%;
+}
+
+.challenge-left{
+    flex:2;
+    min-width:0;
+    padding:22px;
+    border-right:1px solid var(--line);
+}
+
+.monitor-shell{
+    height:100%;
+    min-height:420px;
+    border:1px solid var(--line);
+    background:
+        linear-gradient(180deg, rgba(116,255,155,.08), rgba(0,0,0,.08)),
+        #020403;
+    box-shadow:
+        inset 0 0 42px rgba(0,0,0,.78),
+        0 0 0 6px rgba(116,255,155,.035),
+        0 18px 50px rgba(0,0,0,.55);
+    position:relative;
+    overflow:hidden;
+    border-radius:8px;
+    outline:18px solid rgba(8,12,9,.82);
+    outline-offset:8px;
+    animation:monitorSettle 2.25s .18s cubic-bezier(.17,.84,.2,1) both;
+}
+
+.monitor-shell::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:
+        linear-gradient(90deg, transparent 0 48%, rgba(116,255,155,.08) 50%, transparent 52%),
+        repeating-linear-gradient(0deg, rgba(116,255,155,.08) 0 1px, transparent 1px 7px);
+    opacity:.55;
+    pointer-events:none;
+}
+
+.monitor-shell::after{
+    content:"";
+    position:absolute;
+    inset:-20px;
+    background:radial-gradient(circle at 50% 50%, transparent 44%, rgba(0,0,0,.7) 88%);
+    pointer-events:none;
+}
+
+.camera-bar{
+    height:42px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    padding:0 14px;
+    border-bottom:1px solid var(--line);
+    background:rgba(0,0,0,.38);
+    font-family:Consolas, "Courier New", monospace;
+    color:var(--green);
+    font-size:13px;
+    position:relative;
+    z-index:1;
+}
+
+.feed-grid{
+    position:relative;
+    z-index:1;
+    height:calc(100% - 42px);
+    min-height:calc(100% - 42px);
+    display:grid;
+    place-items:center;
+    padding:28px;
+    box-sizing:border-box;
+}
+
+.feed-grid.target-live{
+    display:block;
+    width:100%;
+    height:calc(100% - 42px);
+    padding:0;
+}
+
+.target-frame-wrap{
+    width:100%;
+    height:100%;
+    min-height:0;
+    position:relative;
+    background:#050705;
+    overflow:hidden;
+    isolation:isolate;
+}
+
+.target-frame-viewport{
+    --target-scale:1;
+    width:1280px;
+    height:720px;
+    position:absolute;
+    left:50%;
+    top:0;
+    transform:translateX(-50%) scale(var(--target-scale));
+    transform-origin:top center;
+    background:#fff;
+    z-index:1;
+    box-shadow:0 0 0 1px rgba(116,255,155,.16);
+}
+
+.target-frame{
+    width:1280px;
+    height:100%;
+    min-height:0;
+    border:0;
+    display:block;
+    background:#fff;
+    position:relative;
+}
+
+.target-frame-wrap::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    z-index:2;
+    pointer-events:none;
+    background:
+        repeating-linear-gradient(0deg, rgba(116,255,155,.09) 0 1px, transparent 1px 5px),
+        linear-gradient(90deg, transparent 0 49%, rgba(116,255,155,.12) 50%, transparent 51%),
+        radial-gradient(circle at 50% 45%, transparent 42%, rgba(0,0,0,.28) 100%);
+    mix-blend-mode:multiply;
+    opacity:.38;
+    animation:monitorScan 3.6s linear infinite;
+}
+
+.target-frame-wrap::after{
+    content:"";
+    position:absolute;
+    inset:-24px;
+    z-index:3;
+    pointer-events:none;
+    background:
+        radial-gradient(circle at 18% 24%, rgba(255,255,255,.12) 0 1px, transparent 1px),
+        radial-gradient(circle at 74% 62%, rgba(116,255,155,.12) 0 1px, transparent 1px),
+        radial-gradient(circle at 42% 78%, rgba(255,255,255,.1) 0 1px, transparent 1px),
+        repeating-linear-gradient(115deg, transparent 0 9px, rgba(255,255,255,.035) 9px 10px);
+    background-size:72px 72px, 96px 96px, 58px 58px, 140px 140px;
+    opacity:.26;
+    animation:staticDrift .42s steps(2,end) infinite;
+}
+
+.target-status-strip{
+    position:absolute;
+    left:12px;
+    bottom:12px;
+    z-index:4;
+    border:1px solid rgba(116,255,155,.35);
+    background:rgba(0,0,0,.68);
+    color:var(--green);
+    padding:7px 10px;
+    font-family:Consolas, "Courier New", monospace;
+    font-size:11px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    pointer-events:none;
+}
+
+.signal-repair{
+    position:absolute;
+    inset:42px 0 0;
+    z-index:6;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding:22px;
+    box-sizing:border-box;
+    background:
+        repeating-linear-gradient(0deg, rgba(116,255,155,.16) 0 1px, transparent 1px 4px),
+        radial-gradient(circle at 50% 45%, rgba(0,0,0,.4), rgba(0,0,0,.88)),
+        rgba(0,0,0,.78);
+    overflow:hidden;
+}
+
+.signal-repair.active{
+    display:flex;
+    animation:repairStatic .35s steps(2,end) infinite;
+}
+
+.repair-panel{
+    width:min(680px, 92%);
+    border:1px solid rgba(116,255,155,.34);
+    background:rgba(2,8,5,.94);
+    box-shadow:0 0 42px rgba(0,0,0,.65), inset 0 0 24px rgba(116,255,155,.05);
+    padding:18px;
+    font-family:Consolas, "Courier New", monospace;
+    color:var(--muted);
+}
+
+.repair-head{
+    display:flex;
+    justify-content:space-between;
+    gap:12px;
+    color:var(--green);
+    margin-bottom:12px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+}
+
+.repair-hint{
+    color:var(--amber);
+    font-size:12px;
+}
+
+.cable-board{
+    position:relative;
+    height:210px;
+    border:1px solid rgba(116,255,155,.16);
+    background:rgba(0,0,0,.3);
+    overflow:hidden;
+}
+
+.cable-board svg{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    pointer-events:none;
+}
+
+.jack-column{
+    position:absolute;
+    top:18px;
+    bottom:18px;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-around;
+    width:130px;
+}
+
+.jack-column.in{
+    left:18px;
+}
+
+.jack-column.out{
+    right:18px;
+}
+
+.jack{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    color:var(--muted);
+    font-size:12px;
+}
+
+.jack.out{
+    justify-content:flex-end;
+}
+
+.jack-dot{
+    width:24px;
+    height:24px;
+    border-radius:50%;
+    border:2px solid currentColor;
+    background:rgba(0,0,0,.72);
+    box-shadow:0 0 14px currentColor;
+    cursor:grab;
+}
+
+.jack.out .jack-dot{
+    cursor:crosshair;
+}
+
+.jack.connected{
+    color:var(--green) !important;
+    opacity:.9;
+}
+
+.repair-footer{
+    display:flex;
+    justify-content:space-between;
+    gap:12px;
+    margin-top:12px;
+    font-size:12px;
+}
+
+.repair-status{
+    color:var(--amber);
+}
+
+.offline-card{
+    width:min(620px, 92%);
+    border:1px solid rgba(116,255,155,.32);
+    background:rgba(2,4,3,.76);
+    padding:26px;
+    text-align:center;
+    box-shadow:0 0 35px rgba(116,255,155,.08);
+    animation:cardFlicker 4.5s infinite;
+}
+
+.offline-card.acquiring{
+    border-color:rgba(255,204,102,.5);
+    box-shadow:0 0 44px rgba(255,204,102,.08), inset 0 0 28px rgba(255,204,102,.04);
+}
+
+.offline-card.signal-found{
+    width:min(790px, 94%);
+    text-align:left;
+    padding:24px;
+    border-color:rgba(116,255,155,.48);
+    animation:briefArrive .55s ease both, cardFlicker 5.5s infinite;
+}
+
+.offline-card h2{
+    margin:0;
+    font-size:34px;
+    letter-spacing:.16em;
+    color:var(--green);
+    text-shadow:0 0 18px rgba(116,255,155,.58);
+}
+
+.offline-card p{
+    margin:14px auto 0;
+    max-width:480px;
+    color:var(--muted);
+    line-height:1.7;
+}
+
+.signal-bars{
+    display:flex;
+    gap:6px;
+    justify-content:center;
+    margin-top:22px;
+}
+
+.signal-bars span{
+    width:46px;
+    height:8px;
+    background:var(--green-dim);
+    opacity:.25;
+    animation:signalPulse .9s infinite alternate;
+}
+
+.offline-card.acquiring .signal-bars span{
+    background:var(--amber);
+}
+
+.signal-bars span:nth-child(2){animation-delay:.18s}
+.signal-bars span:nth-child(3){animation-delay:.36s}
+.signal-bars span:nth-child(4){animation-delay:.54s}
+
+.challenge-brief{
+    display:grid;
+    gap:16px;
+}
+
+.brief-kicker{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    color:var(--amber);
+    font-family:Consolas, "Courier New", monospace;
+    font-size:12px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+}
+
+.role-chip{
+    border:1px solid rgba(255,204,102,.44);
+    padding:5px 9px;
+    background:rgba(255,204,102,.08);
+    color:var(--paper-ink);
+    white-space:nowrap;
+}
+
+.offline-card.signal-found h2{
+    font-size:26px;
+    letter-spacing:.08em;
+}
+
+.brief-text{
+    margin:0;
+    max-width:none;
+}
+
+.brief-grid{
+    display:grid;
+    grid-template-columns:repeat(3, minmax(0, 1fr));
+    gap:10px;
+}
+
+.brief-item{
+    min-height:118px;
+    border:1px solid rgba(116,255,155,.22);
+    background:rgba(116,255,155,.045);
+    padding:12px;
+    box-sizing:border-box;
+}
+
+.brief-item strong{
+    display:block;
+    color:var(--green);
+    margin-bottom:8px;
+    font-family:Consolas, "Courier New", monospace;
+    font-size:12px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+}
+
+.brief-item p{
+    margin:0;
+    max-width:none;
+    font-size:13px;
+    line-height:1.65;
+}
+
+.brief-warning{
+    border-left:3px solid var(--amber);
+    background:rgba(255,204,102,.08);
+    padding:10px 12px;
+    color:var(--muted);
+    line-height:1.65;
+}
+
+.start-challenge-button{
+    justify-self:start;
+    border:1px solid rgba(116,255,155,.54);
+    background:rgba(116,255,155,.1);
+    color:var(--green);
+    padding:12px 18px;
+    font-family:Consolas, "Courier New", monospace;
+    font-size:13px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    cursor:pointer;
+    box-shadow:0 0 22px rgba(116,255,155,.08);
+}
+
+.start-challenge-button:hover{
+    background:rgba(116,255,155,.18);
+    box-shadow:0 0 30px rgba(116,255,155,.16);
+}
+
+.start-challenge-button:disabled{
+    cursor:default;
+    opacity:.62;
+}
+
+.challenge-right{
+    flex:1;
+    min-width:360px;
+    padding:18px;
+    background:rgba(2,4,3,.76);
+    overflow:auto;
+}
+
+.panel{
+    background:linear-gradient(180deg, rgba(14,27,20,.94), rgba(5,8,6,.94));
+    border:1px solid var(--line);
+    margin-bottom:14px;
+    box-shadow:inset 0 0 18px rgba(0,0,0,.42);
+}
+
+.panel h3{
+    margin:0;
+    padding:10px 12px;
+    border-bottom:1px solid var(--line);
+    background:rgba(116,255,155,.06);
+    color:var(--green);
+    font-size:13px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+}
+
+.panel-body{
+    min-height:92px;
+    padding:12px;
+    color:var(--muted);
+    font-family:Consolas, "Courier New", monospace;
+    font-size:12px;
+    line-height:1.55;
+    box-sizing:border-box;
+    position:relative;
+}
+
+.panel-body::before{
+    content:"reserved / awaiting module";
+    color:rgba(125,169,138,.52);
+}
+
+.panel-body.large{
+    min-height:138px;
+}
+
+.panel-body.filled::before{
+    content:none;
+}
+
+.toolkit-list{
+    display:grid;
+    gap:8px;
+}
+
+.toolkit-line{
+    display:block;
+    color:var(--green);
+    margin:5px 0;
+}
+
+.toolkit-line span{
+    color:var(--muted);
+}
+
+.toolkit-group{
+    border:1px solid rgba(116,255,155,.18);
+    background:rgba(0,0,0,.2);
+}
+
+.toolkit-group summary{
+    cursor:pointer;
+    padding:7px 9px;
+    color:var(--green);
+    background:rgba(116,255,155,.055);
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    user-select:none;
+}
+
+.toolkit-group summary::marker{
+    color:var(--amber);
+}
+
+.toolkit-group-body{
+    padding:6px 9px 8px;
+    border-top:1px solid rgba(116,255,155,.14);
+}
+
+.console-form{
+    display:grid;
+    gap:8px;
+}
+
+.console-input{
+    width:100%;
+    min-height:62px;
+    box-sizing:border-box;
+    border:1px solid rgba(116,255,155,.28);
+    background:rgba(0,0,0,.42);
+    color:var(--green);
+    padding:9px;
+    font-family:Consolas, "Courier New", monospace;
+    font-size:12px;
+    resize:vertical;
+    outline:none;
+}
+
+.console-input:focus{
+    border-color:rgba(116,255,155,.62);
+    box-shadow:0 0 20px rgba(116,255,155,.08);
+}
+
+.console-run{
+    justify-self:end;
+    border:1px solid rgba(116,255,155,.42);
+    background:rgba(116,255,155,.08);
+    color:var(--green);
+    padding:8px 12px;
+    font-family:Consolas, "Courier New", monospace;
+    font-size:12px;
+    cursor:pointer;
+}
+
+.console-run:hover{
+    background:rgba(116,255,155,.16);
+}
+
+.log-line{
+    margin-bottom:5px;
+}
+
+.log-warn{
+    color:var(--amber);
+}
+
+.log-ok{
+    color:var(--green);
+}
+
+.data-console{
+    position:fixed;
+    left:50%;
+    bottom:0;
+    width:min(760px, calc(100vw - 46px));
+    height:292px;
+    z-index:8;
+    transform:translate(-50%, calc(100% - 42px));
+    transition:transform .46s cubic-bezier(.18,.9,.22,1);
+    font-family:Consolas, "Courier New", monospace;
+}
+
+.data-console.open{
+    transform:translate(-50%, 0);
+}
+
+.data-console.opening{
+    animation:dataConsoleJolt .52s steps(3,end);
+}
+
+.data-console-tab{
+    width:210px;
+    height:42px;
+    margin:0 auto;
+    display:block;
+    border:1px solid rgba(116,255,155,.42);
+    border-bottom:0;
+    background:linear-gradient(180deg, rgba(15,35,23,.96), rgba(3,8,5,.96));
+    color:var(--green);
+    font-family:Consolas, "Courier New", monospace;
+    font-size:12px;
+    letter-spacing:.11em;
+    cursor:pointer;
+    box-shadow:0 -10px 28px rgba(0,0,0,.35);
+}
+
+.data-console-inner{
+    height:250px;
+    border:1px solid rgba(116,255,155,.35);
+    background:
+        linear-gradient(180deg, rgba(7,18,12,.96), rgba(1,4,3,.98)),
+        #020403;
+    box-shadow:0 -16px 46px rgba(0,0,0,.55), inset 0 0 26px rgba(116,255,155,.04);
+    overflow:hidden;
+    position:relative;
+}
+
+.data-console-inner::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    z-index:3;
+    pointer-events:none;
+    background:
+        linear-gradient(180deg, transparent 0 42%, rgba(116,255,155,.2) 45%, transparent 48%),
+        repeating-linear-gradient(0deg, rgba(116,255,155,.055) 0 1px, transparent 1px 6px);
+    opacity:.18;
+}
+
+.data-console.opening .data-console-inner::before{
+    animation:dataConsoleBoot .58s linear;
+}
+
+.data-console-head{
+    height:38px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    padding:0 12px;
+    border-bottom:1px solid rgba(116,255,155,.22);
+    color:var(--green);
+    font-size:12px;
+    letter-spacing:.08em;
+}
+
+.data-console-status{
+    color:var(--amber);
+    white-space:nowrap;
+}
+
+.data-map{
+    position:relative;
+    height:156px;
+    margin:12px;
+    border:1px solid rgba(116,255,155,.14);
+    background:
+        linear-gradient(90deg, transparent 0 24%, rgba(116,255,155,.08) 24.5% 25%, transparent 25.5% 49%, rgba(116,255,155,.08) 49.5% 50%, transparent 50.5% 74%, rgba(116,255,155,.08) 74.5% 75%, transparent 75.5%),
+        linear-gradient(0deg, transparent 0 47%, rgba(116,255,155,.08) 48% 49%, transparent 50%),
+        rgba(0,0,0,.28);
+    display:grid;
+    grid-template-columns:repeat(4, 1fr);
+    grid-template-rows:repeat(2, 1fr);
+    gap:10px;
+    padding:12px;
+    box-sizing:border-box;
+}
+
+.data-node{
+    border:1px solid rgba(116,255,155,.22);
+    background:rgba(116,255,155,.045);
+    color:var(--muted);
+    padding:8px;
+    display:grid;
+    align-content:center;
+    min-width:0;
+    position:relative;
+    box-shadow:inset 0 0 14px rgba(0,0,0,.28);
+}
+
+.data-node strong{
+    color:var(--green);
+    font-size:12px;
+    line-height:1.1;
+}
+
+.data-node span{
+    font-size:10px;
+    color:rgba(180,210,190,.72);
+    margin-top:4px;
+}
+
+.data-node::after{
+    content:"";
+    position:absolute;
+    right:7px;
+    top:7px;
+    width:6px;
+    height:6px;
+    border-radius:50%;
+    background:rgba(116,255,155,.32);
+}
+
+.data-node.warn{
+    border-color:rgba(255,204,102,.56);
+    background:rgba(255,204,102,.08);
+}
+
+.data-node.warn::after{
+    background:var(--amber);
+    animation:statusBlink .9s steps(2,end) infinite;
+}
+
+.data-node.alert{
+    border-color:rgba(255,103,103,.68);
+    background:rgba(255,80,80,.09);
+}
+
+.data-node.alert::after{
+    background:#ff6767;
+    animation:statusBlink .45s steps(2,end) infinite;
+}
+
+.data-node.focus{
+    box-shadow:0 0 20px rgba(116,255,155,.18), inset 0 0 18px rgba(116,255,155,.08);
+}
+
+.data-detail{
+    position:absolute;
+    left:12px;
+    right:12px;
+    top:50px;
+    bottom:12px;
+    z-index:2;
+    border:1px solid rgba(116,255,155,.28);
+    background:linear-gradient(180deg, rgba(2,12,8,.98), rgba(0,3,2,.98));
+    box-shadow:0 12px 32px rgba(0,0,0,.42), inset 0 0 20px rgba(116,255,155,.05);
+    padding:12px;
+    box-sizing:border-box;
+    opacity:0;
+    transform:translateY(12px);
+    pointer-events:none;
+    transition:opacity .24s ease, transform .24s ease;
+}
+
+.data-detail.active{
+    opacity:1;
+    transform:translateY(0);
+    pointer-events:auto;
+}
+
+.data-detail.loading{
+    animation:dataDetailPop .34s steps(2,end);
+}
+
+.data-detail-head{
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+    color:var(--green);
+    font-size:12px;
+    letter-spacing:.08em;
+    margin-bottom:10px;
+}
+
+.data-detail-back{
+    color:var(--amber);
+    font-size:11px;
+}
+
+.data-progress{
+    height:10px;
+    border:1px solid rgba(116,255,155,.3);
+    background:rgba(0,0,0,.48);
+    margin:12px 0;
+    overflow:hidden;
+}
+
+.data-progress span{
+    display:block;
+    height:100%;
+    width:0;
+    background:linear-gradient(90deg, rgba(255,204,102,.85), rgba(116,255,155,.9));
+}
+
+.data-detail.loading .data-progress span{
+    animation:dataProgressLoad .86s cubic-bezier(.2,.85,.3,1) forwards;
+}
+
+.data-detail-grid{
+    display:grid;
+    grid-template-columns:repeat(2, minmax(0,1fr));
+    gap:8px;
+}
+
+.data-detail-cell{
+    border:1px solid rgba(116,255,155,.16);
+    background:rgba(116,255,155,.04);
+    padding:8px;
+    min-height:44px;
+}
+
+.data-detail-cell strong{
+    display:block;
+    color:var(--green);
+    font-size:11px;
+    margin-bottom:3px;
+}
+
+.data-detail-cell span{
+    color:var(--muted);
+    font-size:11px;
+    line-height:1.35;
+}
+
+.data-detail-grid.streaming .data-detail-cell{
+    animation:dataCellPulse .48s steps(2,end) infinite alternate;
+}
+
+.data-detail-grid.streaming{
+    grid-template-columns:repeat(4, minmax(0,1fr));
+    gap:6px;
+}
+
+.data-detail-grid.streaming .data-detail-cell{
+    min-height:38px;
+    padding:6px;
+}
+
+.data-detail-grid.streaming .data-detail-cell span{
+    font-size:9px;
+    overflow-wrap:anywhere;
+}
+
+.data-detail-grid.streaming .data-detail-cell:nth-child(even){
+    animation-delay:.12s;
+}
+
+.data-event-list{
+    display:grid;
+    gap:7px;
+}
+
+.data-event-row{
+    border-left:3px solid rgba(116,255,155,.4);
+    background:rgba(116,255,155,.045);
+    padding:7px 9px;
+    min-height:29px;
+}
+
+.data-event-row.alert{
+    border-left-color:#ff6767;
+    background:rgba(255,80,80,.07);
+}
+
+.data-event-row strong{
+    display:block;
+    color:var(--green);
+    font-size:11px;
+    margin-bottom:2px;
+}
+
+.data-event-row.alert strong{
+    color:#ff8d8d;
+}
+
+.data-event-row span{
+    color:var(--muted);
+    font-size:10px;
+    line-height:1.3;
+}
+
+.data-trace{
+    height:32px;
+    margin:0 12px;
+    color:var(--muted);
+    font-size:11px;
+    line-height:1.45;
+}
+
+.summary-modal{
+    position:fixed;
+    inset:0;
+    z-index:80;
+    display:none;
+    place-items:center;
+    padding:24px;
+    background:rgba(0,0,0,.72);
+}
+
+.summary-modal.open{
+    display:grid;
+}
+
+.summary-card{
+    width:min(780px, 94vw);
+    max-height:90vh;
+    overflow:auto;
+    border:1px solid rgba(116,255,155,.34);
+    background:linear-gradient(180deg, rgba(11,24,17,.98), rgba(2,5,3,.98));
+    box-shadow:0 28px 80px rgba(0,0,0,.72), inset 0 0 28px rgba(116,255,155,.05);
+    padding:24px;
+    color:var(--muted);
+    font-family:Consolas, "Courier New", monospace;
+}
+
+.summary-card h2{
+    margin:0 0 12px;
+    color:var(--green);
+    letter-spacing:.08em;
+    text-transform:uppercase;
+}
+
+.summary-grid{
+    display:grid;
+    grid-template-columns:repeat(2, minmax(0,1fr));
+    gap:10px;
+    margin:14px 0;
+}
+
+.summary-item{
+    border:1px solid rgba(116,255,155,.16);
+    background:rgba(116,255,155,.045);
+    padding:10px;
+}
+
+.summary-item strong{
+    display:block;
+    color:var(--green);
+    margin-bottom:5px;
+}
+
+.summary-status{
+    display:inline-block;
+    margin-bottom:10px;
+    padding:4px 8px;
+    border:1px solid rgba(116,255,155,.32);
+    color:var(--green);
+    background:rgba(116,255,155,.07);
+    font-size:12px;
+}
+
+.summary-status.failed{
+    border-color:rgba(255,103,103,.4);
+    color:#ff9a9a;
+    background:rgba(255,103,103,.08);
+}
+
+.summary-report{
+    display:grid;
+    grid-template-columns:repeat(2, minmax(0,1fr));
+    gap:10px;
+    margin:12px 0 16px;
+}
+
+.summary-section{
+    border-left:2px solid rgba(116,255,155,.35);
+    background:rgba(255,255,255,.025);
+    padding:10px 12px;
+    font-size:12px;
+    line-height:1.55;
+}
+
+.summary-section.wide{
+    grid-column:1 / -1;
+}
+
+.summary-section strong{
+    display:block;
+    margin-bottom:5px;
+    color:var(--green);
+    text-transform:uppercase;
+    letter-spacing:.06em;
+}
+
+.summary-section code{
+    display:block;
+    margin:3px 0;
+    color:#c8ffd5;
+    white-space:normal;
+    overflow-wrap:anywhere;
+}
+
+.summary-command-log summary{
+    cursor:pointer;
+    color:var(--green);
+}
+
+.summary-command-log div{
+    margin-top:8px;
+    max-height:120px;
+    overflow:auto;
+}
+
+.summary-close{
+    border:1px solid rgba(116,255,155,.42);
+    background:rgba(116,255,155,.08);
+    color:var(--green);
+    padding:9px 14px;
+    font-family:Consolas, "Courier New", monospace;
+    cursor:pointer;
+}
+
+.summary-actions{
+    display:flex;
+    justify-content:flex-end;
+    gap:8px;
+}
+
+.summary-next{
+    border:1px solid rgba(116,255,155,.65);
+    background:var(--green);
+    color:#061109;
+    padding:9px 14px;
+    font-family:Consolas, "Courier New", monospace;
+    font-weight:700;
+    cursor:pointer;
+}
+
+@media (max-width:900px){
+    body{
+        overflow:auto;
+    }
+
+    .challenge-layout{
+        display:block;
+        height:auto;
+    }
+
+    .summary-report,
+    .summary-grid{
+        grid-template-columns:1fr;
+    }
+
+    .challenge-left{
+        height:520px;
+        border-right:0;
+        border-bottom:1px solid var(--line);
+    }
+
+    .target-frame-wrap,
+    .target-frame{
+        min-height:478px;
+    }
+
+    .challenge-right{
+        min-width:0;
+    }
+
+    .brief-grid{
+        grid-template-columns:1fr;
+    }
+
+    .brief-kicker{
+        align-items:flex-start;
+        flex-direction:column;
+    }
+
+    .header{
+        align-items:flex-start;
+        flex-direction:column;
+        height:auto;
+        gap:8px;
+        padding:14px 18px;
+    }
+}
+
+@keyframes bootOpen{
+    0%,78%{opacity:1}
+    100%{opacity:0;visibility:hidden}
+}
+
+@keyframes shutterTop{
+    from{transform:translateY(0)}
+    to{transform:translateY(-101%)}
+}
+
+@keyframes shutterBottom{
+    from{transform:translateY(0)}
+    to{transform:translateY(101%)}
+}
+
+@keyframes bootLine{
+    0%{transform:scaleY(1);opacity:1}
+    55%{transform:scaleY(4);opacity:1}
+    100%{transform:scaleY(.4);opacity:0}
+}
+
+@keyframes screenFlicker{
+    0%,100%{opacity:.32}
+    3%{opacity:.5}
+    6%{opacity:.24}
+    46%{opacity:.38}
+    48%{opacity:.18}
+    52%{opacity:.44}
+}
+
+@keyframes staticDrift{
+    from{transform:translate(0,0)}
+    to{transform:translate(12px,-10px)}
+}
+
+@keyframes statusBlink{
+    0%,44%{opacity:.28}
+    45%,100%{opacity:1}
+}
+
+@keyframes cardFlicker{
+    0%,100%{filter:brightness(1)}
+    47%{filter:brightness(1.1)}
+    48%{filter:brightness(.72)}
+    49%{filter:brightness(1.28)}
+    51%{filter:brightness(.94)}
+}
+
+@keyframes signalPulse{
+    from{opacity:.2;transform:scaleX(.45)}
+    to{opacity:1;transform:scaleX(1)}
+}
+
+@keyframes monitorScan{
+    0%{
+        transform:translateY(-4px);
+        opacity:.3;
+    }
+    48%{
+        opacity:.42;
+    }
+    52%{
+        opacity:.22;
+    }
+    100%{
+        transform:translateY(5px);
+        opacity:.36;
+    }
+}
+
+@keyframes dataConsoleJolt{
+    0%{filter:brightness(.7); transform:translate(-50%, calc(100% - 42px))}
+    22%{filter:brightness(1.4); transform:translate(-50%, -8px)}
+    38%{filter:brightness(.85); transform:translate(-50%, 3px)}
+    60%{filter:brightness(1.15); transform:translate(-50%, -2px)}
+    100%{filter:brightness(1); transform:translate(-50%, 0)}
+}
+
+@keyframes dataConsoleBoot{
+    0%{transform:translateY(-100%); opacity:.8}
+    28%{transform:translateY(-20%); opacity:.35}
+    32%{opacity:.85}
+    54%{transform:translateY(32%); opacity:.2}
+    72%{opacity:.7}
+    100%{transform:translateY(100%); opacity:.16}
+}
+
+@keyframes dataDetailPop{
+    0%{filter:brightness(.6); transform:translateY(22px)}
+    50%{filter:brightness(1.45); transform:translateY(-3px)}
+    100%{filter:brightness(1); transform:translateY(0)}
+}
+
+@keyframes dataProgressLoad{
+    0%{width:4%}
+    28%{width:37%}
+    54%{width:62%}
+    82%{width:88%}
+    100%{width:100%}
+}
+
+@keyframes dataCellPulse{
+    from{background:rgba(116,255,155,.035);filter:brightness(.9)}
+    to{background:rgba(255,204,102,.075);filter:brightness(1.18)}
+}
+
+@keyframes repairStatic{
+    0%{filter:brightness(.72) contrast(1.3); transform:translate(0,0)}
+    25%{filter:brightness(1.25) contrast(1.8); transform:translate(2px,-1px)}
+    50%{filter:brightness(.92) contrast(1.5); transform:translate(-1px,1px)}
+    75%{filter:brightness(1.35) contrast(2); transform:translate(1px,0)}
+    100%{filter:brightness(.82) contrast(1.4); transform:translate(0,1px)}
+}
+
+@keyframes briefArrive{
+    from{
+        opacity:.3;
+        transform:translateY(10px) scale(.985);
+        filter:blur(1px) brightness(1.25);
+    }
+    to{
+        opacity:1;
+        transform:translateY(0) scale(1);
+        filter:blur(0) brightness(1);
+    }
+}
+
+@keyframes paperShuffle{
+    0%{opacity:.25;transform:translateX(-18px) rotate(-2deg)}
+    70%{opacity:1;transform:translateX(5px) rotate(1deg)}
+    100%{opacity:1;transform:translateX(0) rotate(0deg)}
+}
+
+@keyframes roomZoomOut{
+    0%{
+        transform:scale(1.18) translateY(14px);
+        filter:brightness(1.18) blur(.3px);
+    }
+    62%{
+        transform:scale(1.03) translateY(2px);
+        filter:brightness(1.03) blur(0);
+    }
+    100%{
+        transform:scale(1) translateY(0);
+        filter:brightness(1) blur(0);
+    }
+}
+
+@keyframes monitorSettle{
+    0%{
+        border-radius:0;
+        outline-width:0;
+        box-shadow:inset 0 0 12px rgba(0,0,0,.55), 0 0 80px rgba(116,255,155,.18);
+    }
+    100%{
+        border-radius:8px;
+        outline-width:18px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="boot-shutter" aria-hidden="true">
+    <div class="boot-line"></div>
+</div>
+
+<a class="back-link" href="simulation.html" aria-label="กลับไปหน้า Simulation" title="กลับ">‹</a>
+<div class="paper-peek-zone" aria-hidden="true"></div>
+<aside class="paper-note" id="paperNote" aria-label="คู่มือจดมือ">
+    <div class="paper-content" id="paperNoteContent">
+        <div class="staples" aria-hidden="true"><span></span><span></span></div>
+        <div class="sheet-tabs" aria-label="เลือกแผ่นคู่มือ">
+            <button class="sheet-tab active" type="button" data-sheet="news">NEWS</button>
+            <button class="sheet-tab" type="button" data-sheet="shop">SHOP</button>
+            <button class="sheet-tab" type="button" data-sheet="ticket">TICKET</button>
+        </div>
+
+        <section class="manual-sheet active" data-sheet="news">
+            <h2>ข่าวสาร / page integrity</h2>
+            <p class="sheet-sub">เว็บข่าวโดนเจาะแบบไม่พังทันที มักเริ่มจากคำพูดผิดโทนหรือหน้าแรกเล่าเรื่องแปลก</p>
+            <div class="keyword-row">
+                <span>scan</span><span>content</span><span>baseline</span><span>restore</span>
+            </div>
+            <div class="manual-scenario">
+                <h3>case A: เนื้อหาข่าวผิดปกติ</h3>
+                <p>เริ่มจากหัวข้อหรือย่อหน้าบางจุดเปลี่ยนน้ำเสียง ลองดูบทความหลักก่อนดูหน้าอื่น</p>
+                <div class="manual-route"><span>scan surface</span> → <span>inspect content</span> → <span>contain content</span> → <span>verify baseline</span> → <span>confirm stable</span> → <span>restore clean</span></div>
+            </div>
+            <div class="manual-scenario">
+                <h3>case B: หน้าแรกถูกเปลี่ยนเนื้อหา</h3>
+                <p>ถ้า hero, ข่าวด่วน, หรือการ์ดข่าวหลายจุดเปลี่ยนพร้อมกัน ให้คิดถึง homepage modules</p>
+                <div class="manual-route"><span>scan surface</span> → <span>inspect content</span> → <span>contain content</span> → <span>verify baseline</span> → <span>confirm stable</span> → <span>restore clean</span></div>
+            </div>
+            <p class="scribble-note"><span class="crossed">อย่ารีเซ็ตทันที</span> ก่อนรู้ว่าหน้าไหนถูกเปลี่ยน ตรวจหน้าแรกก่อน แล้วค่อยไล่หมวดข่าว</p>
+        </section>
+
+        <section class="manual-sheet" data-sheet="shop">
+            <h2>ร้านค้า / data gate</h2>
+            <p class="sheet-sub">ร้านค้ามักไม่พังหน้าตา แต่รั่วที่ข้อมูลลูกค้า ลำดับคำสั่งซื้อ หรือราคาที่ไม่ผ่านฝั่งระบบ</p>
+            <div class="keyword-row">
+                <span>scan</span><span>data</span><span>checkout</span><span>server-price</span><span>restore</span>
+            </div>
+            <div class="manual-scenario">
+                <h3>case A: ข้อมูลลูกค้ารั่วไหล</h3>
+                <p>ถ้ามีกล่องข้อมูลหรือ session แปลก ๆ โผล่บนหน้าเว็บ ให้คิดว่าขอบเขต data ถูกเปิดเกินจำเป็น</p>
+                <div class="manual-route"><span>scan surface</span> → <span>inspect customer</span> → <span>contain data</span> → <span>verify server-price</span> → <span>confirm stable</span> → <span>restore clean</span></div>
+            </div>
+            <div class="manual-scenario">
+                <h3>case B: คำสั่งซื้อผิดปกติ</h3>
+                <p>ถ้าราคา ยอดสั่งซื้อ หรือ checkout state ดูข้ามขั้น ให้ล็อกลำดับ checkout ก่อนกู้คืน</p>
+                <div class="manual-route"><span>scan surface</span> → <span>inspect checkout</span> → <span>verify server-price</span> → <span>contain checkout</span> → <span>confirm stable</span> → <span>restore clean</span></div>
+            </div>
+            <p class="scribble-note">อย่าเชื่อราคาที่เห็นบนหน้าเว็บอย่างเดียว ราคาในคำสั่งซื้อควรถูกเทียบจากฝั่งข้อมูลอีกชั้น</p>
+        </section>
+
+        <section class="manual-sheet" data-sheet="ticket">
+            <h2>ตั๋ว / inventory lock</h2>
+            <p class="sheet-sub">เว็บตั๋วต้องดูว่าจำนวนตั๋วจริงกับแรงซื้อผิดปกติสัมพันธ์กันไหม อย่าแก้เหมือนกันทุกเคส</p>
+            <div class="keyword-row">
+                <span>scan</span><span>inventory</span><span>baseline</span><span>identity</span><span>restore</span>
+            </div>
+            <div class="manual-scenario">
+                <h3>case A: ตั๋วขายเกินจำนวน</h3>
+                <p>ถ้าเห็นจำนวนขายมากกว่าจำนวนจริงหรือ badge แปลก ๆ ให้ sync inventory ก่อนเทียบ baseline</p>
+                <div class="manual-route"><span>scan surface</span> → <span>inspect inventory</span> → <span>sync inventory</span> → <span>verify baseline</span> → <span>confirm stable</span> → <span>restore clean</span></div>
+            </div>
+            <div class="manual-scenario">
+                <h3>case B: ตั๋วหมดเร็วผิดปกติ</h3>
+                <p>ถ้ามี queue spike หรือคำขอซื้อถี่เกินมนุษย์ ให้ยกระดับ identity ก่อน sync จำนวนตั๋ว</p>
+                <div class="manual-route"><span>scan surface</span> → <span>inspect identity</span> → <span>identity step-up</span> → <span>sync inventory</span> → <span>confirm stable</span> → <span>restore clean</span></div>
+            </div>
+            <p class="scribble-note">ตั๋วหมดไม่ได้แปลว่าคนเยอะเสมอไป ดูความเร็วของคำสั่งซื้อและจำนวนต่อผู้ใช้ด้วย</p>
+        </section>
+    </div>
+</aside>
+
+<header class="header">
+    <div class="title-block">
+        <span class="status-light" aria-hidden="true"></span>
+        <h1>Challenge Mode</h1>
+    </div>
+    <div class="header-status">
+        <div class="system-readout" id="systemReadout">SECURITY MONITOR / FEED NOT ASSIGNED</div>
+        <div class="challenge-timer" id="challengeTimer">--:--</div>
+    </div>
+</header>
+
+<main class="challenge-layout">
+    <section class="challenge-left" aria-label="พื้นที่เว็บไซต์เป้าหมาย">
+        <div class="monitor-shell">
+            <div class="camera-bar">
+                <span>monitor develop tool-26 / TARGET SLOT</span>
+                <span id="feedStatus">NO INPUT</span>
+            </div>
+            <div class="feed-grid" id="feedGrid">
+                <div class="offline-card" id="signalCard">
+                    <h2 id="signalTitle">NO SIGNAL</h2>
+                    <p id="signalMessage">พื้นที่สำหรับเว็บไซต์เป้าหมายยังไม่ถูกกำหนด ระบบอยู่ในโหมดเตรียมโครงสร้าง Challenge</p>
+                    <div class="signal-bars" id="signalBars" aria-hidden="true">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
+            </div>
+            <div class="signal-repair" id="signalRepair" aria-hidden="true"></div>
+        </div>
+    </section>
+
+    <aside class="challenge-right" aria-label="แผงควบคุม Challenge">
+        <div class="panel">
+            <h3>Mission Console</h3>
+            <div class="panel-body large" id="missionConsole"></div>
+        </div>
+
+        <div class="panel">
+            <h3>Defense Toolkit</h3>
+            <div class="panel-body" id="defenseToolkit"></div>
+        </div>
+
+        <div class="panel">
+            <h3>Challenge Console</h3>
+            <div class="panel-body" id="challengeConsole"></div>
+        </div>
+
+        <div class="panel">
+            <h3>Operation Log</h3>
+            <div class="panel-body large" id="operationLog"></div>
+        </div>
+    </aside>
+</main>
+
+<section class="data-console" id="dataConsole" aria-label="จอแผนผังข้อมูลภายในระบบ">
+    <button class="data-console-tab" id="dataConsoleToggle" type="button">DATA LINK CONSOLE</button>
+    <div class="data-console-inner">
+        <div class="data-console-head">
+            <span id="dataMapTitle">INTERNAL DATA MAP</span>
+            <span class="data-console-status" id="dataMapStatus">STANDBY</span>
+        </div>
+        <div class="data-map" id="dataMapGraph"></div>
+        <div class="data-detail" id="dataDetail" aria-hidden="true"></div>
+        <div class="data-trace" id="dataMapTrace">รอการเชื่อม target surface</div>
+    </div>
+</section>
+
+<section class="summary-modal" id="summaryModal" aria-label="สรุปผลการจำลอง">
+    <div class="summary-card" id="summaryCard"></div>
+</section>
+
+<script>
+const paperNote = document.getElementById("paperNote");
+const sheetTabs = document.querySelectorAll(".sheet-tab");
+const manualSheets = document.querySelectorAll(".manual-sheet");
+const systemReadout = document.getElementById("systemReadout");
+const feedStatus = document.getElementById("feedStatus");
+const feedGrid = document.getElementById("feedGrid");
+const signalCard = document.getElementById("signalCard");
+const signalTitle = document.getElementById("signalTitle");
+const signalMessage = document.getElementById("signalMessage");
+const signalRepair = document.getElementById("signalRepair");
+const missionConsole = document.getElementById("missionConsole");
+const defenseToolkit = document.getElementById("defenseToolkit");
+const challengeConsole = document.getElementById("challengeConsole");
+const operationLog = document.getElementById("operationLog");
+const challengeTimer = document.getElementById("challengeTimer");
+const dataConsole = document.getElementById("dataConsole");
+const dataConsoleToggle = document.getElementById("dataConsoleToggle");
+const dataMapTitle = document.getElementById("dataMapTitle");
+const dataMapStatus = document.getElementById("dataMapStatus");
+const dataMapGraph = document.getElementById("dataMapGraph");
+const dataDetail = document.getElementById("dataDetail");
+const dataMapTrace = document.getElementById("dataMapTrace");
+const summaryModal = document.getElementById("summaryModal");
+const summaryCard = document.getElementById("summaryCard");
+const TARGET_VIEWPORT_WIDTH = 1280;
+const CHALLENGE_TIME_LIMIT = 4 * 60;
+let challengeState = {
+    target:null,
+    scenario:null,
+    stage:0,
+    recovered:false,
+    completed:false,
+    summaryShown:false,
+    timeRemaining:CHALLENGE_TIME_LIMIT,
+    countdownId:null,
+    timelineStarted:false,
+    bridgeReady:false,
+    activeTimers:[],
+    log:[],
+    dataEvents:[],
+    dataView:null,
+    dataStreamId:null,
+    defenseProgress:0,
+    scanCompleted:false,
+    attackTargets:[],
+    evidenceViewed:[],
+    commandHistory:[],
+    controlHistory:[],
+    postValidationComplete:false,
+    validationPending:false,
+    stats:{
+        commands:0,
+        mistakes:0,
+        repairs:0,
+        matchedControls:0,
+        mapViews:0
+    },
+    repair:{
+        active:false,
+        cables:[],
+        connected:0,
+        drag:null
+    },
+    dataMap:{
+        focus:[],
+        level:"idle",
+        trace:"รอการเชื่อม target surface"
+    }
+};
+
+const targetPool = [
+    {
+        code:"TARGET-01",
+        title:"Target Surface 01",
+        url:"labs/news-site/index.html",
+        type:"news",
+        scenarios:[
+            {
+                id:"news-content-drift",
+                label:"content integrity breach",
+                clue:"ร่องรอยเริ่มจากเนื้อหาบางย่อหน้าหรือหัวข้อข่าวที่น้ำเสียงเปลี่ยนไป",
+                defense:["sentinel scan --surface current", "sentinel contain --scope content", "sentinel verify --source baseline", "sentinel confirm --state stable", "sentinel restore --clean"]
+            },
+            {
+                id:"news-homepage-drift",
+                label:"homepage narrative drift",
+                clue:"หน้าแรกและแถบข่าวด่วนอาจเริ่มเล่าเรื่องไม่ตรงกับโทนข่าวปกติ",
+                defense:["sentinel scan --surface current", "sentinel contain --scope content", "sentinel verify --source baseline", "sentinel confirm --state stable", "sentinel restore --clean"]
+            }
+        ]
+    },
+    {
+        code:"TARGET-02",
+        title:"Target Surface 02",
+        url:"labs/shop-site/index.html",
+        type:"shop",
+        scenarios:[
+            {
+                id:"shop-data-leak",
+                label:"customer data exposure",
+                clue:"ข้อมูลลูกค้าบางส่วนเริ่มโผล่ผ่านชั้น cache หรือกล่องสถานะที่ไม่ควรอยู่บนหน้าเว็บ",
+                defense:["sentinel scan --surface current", "sentinel contain --scope data", "sentinel verify --source server-price", "sentinel confirm --state stable", "sentinel restore --clean"]
+            },
+            {
+                id:"shop-order-anomaly",
+                label:"order flow anomaly",
+                clue:"ยอดคำสั่งซื้อหรือราคาบางจุดเริ่มไม่สอดคล้องกับขั้นตอนซื้อปกติ",
+                defense:["sentinel scan --surface current", "sentinel verify --source server-price", "sentinel contain --scope checkout", "sentinel confirm --state stable", "sentinel restore --clean"]
+            }
+        ]
+    },
+    {
+        code:"TARGET-03",
+        title:"Target Surface 03",
+        url:"labs/ticket-site/index.html",
+        type:"ticket",
+        scenarios:[
+            {
+                id:"ticket-oversell",
+                label:"inventory desync",
+                clue:"จำนวนตั๋วเริ่มไม่สัมพันธ์กับสถานะขายจริง บางอีเว้นท์ดูเหมือนขายเกินจำนวน",
+                defense:["sentinel scan --surface current", "sentinel sync --inventory", "sentinel verify --source baseline", "sentinel confirm --state stable", "sentinel restore --clean"]
+            },
+            {
+                id:"ticket-rapid-buyout",
+                label:"purchase pressure anomaly",
+                clue:"อีเว้นท์เริ่มหมดเร็วผิดปกติ เหมือนคำสั่งซื้อถูกเร่งจากด้านหลังระบบ",
+                defense:["sentinel scan --surface current", "sentinel identity --step-up", "sentinel sync --inventory", "sentinel confirm --state stable", "sentinel restore --clean"]
+            }
+        ]
+    }
+];
+
+const ticketInventoryTargets = [
+    {id:"luna", name:"Luna Blue", capacity:1200},
+    {id:"river", name:"Riverstone", capacity:860},
+    {id:"neon", name:"Neon Lights", capacity:1450},
+    {id:"atlas", name:"Atlas Echo", capacity:720},
+    {id:"aurora", name:"Aurora Frame", capacity:540},
+    {id:"orbit", name:"Orbit Seven", capacity:980},
+    {id:"velvet", name:"Velvet Radio", capacity:640},
+    {id:"pulse", name:"Pulse District", capacity:1100},
+    {id:"sierra", name:"Sierra Moon", capacity:460}
+];
+
+const dataProfiles = {
+    news:[
+        {id:"site", label:"site", sub:"public page"},
+        {id:"publish", label:"publish", sub:"queue"},
+        {id:"content", label:"content", sub:"article data"},
+        {id:"baseline", label:"baseline", sub:"known good"},
+        {id:"cache", label:"cache", sub:"edge copy"},
+        {id:"editor", label:"editor", sub:"approval"},
+        {id:"feed", label:"feed", sub:"breaking"},
+        {id:"monitor", label:"monitor", sub:"integrity"}
+    ],
+    shop:[
+        {id:"storefront", label:"storefront", sub:"public UI"},
+        {id:"auth", label:"auth", sub:"account"},
+        {id:"customer", label:"customer", sub:"profile data"},
+        {id:"cart", label:"cart", sub:"session"},
+        {id:"order", label:"order", sub:"state"},
+        {id:"price", label:"price", sub:"server source"},
+        {id:"payment", label:"payment", sub:"approval route"},
+        {id:"audit", label:"audit", sub:"operator log"}
+    ],
+    ticket:[
+        {id:"events", label:"events", sub:"listing"},
+        {id:"identity", label:"identity", sub:"member check"},
+        {id:"queue", label:"queue", sub:"purchase pressure"},
+        {id:"inventory", label:"inventory", sub:"ticket count"},
+        {id:"purchase", label:"purchase", sub:"order intent"},
+        {id:"limit", label:"limit", sub:"per account"},
+        {id:"payment", label:"payment", sub:"hold confirm"},
+        {id:"ledger", label:"ledger", sub:"truth source"}
+    ]
+};
+
+function setPaperOpen(open){
+    paperNote.classList.toggle("open", open);
+}
+
+function setPanel(panel, html){
+    panel.classList.add("filled");
+    panel.innerHTML = html;
+}
+
+function escapeHtml(value){
+    return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+}
+
+function appendLog(line, tone){
+    challengeState.log.push({line:line, tone:tone || ""});
+    challengeState.log = challengeState.log.slice(-12);
+    setPanel(operationLog, challengeState.log.map(function(item){
+        const className = item.tone ? "log-line " + item.tone : "log-line";
+        return '<div class="' + className + '">' + escapeHtml(item.line) + '</div>';
+    }).join(""));
+}
+
+function writeLog(lines){
+    challengeState.log = [];
+    challengeState.dataEvents = [];
+    challengeState.dataView = null;
+    if(challengeState.dataStreamId){
+        window.clearInterval(challengeState.dataStreamId);
+        challengeState.dataStreamId = null;
+    }
+    dataConsoleToggle.textContent = "DATA LINK CONSOLE";
+    lines.forEach(function(line){
+        appendLog(line);
+    });
+}
+
+function formatTime(seconds){
+    const safeSeconds = Math.max(0, seconds);
+    const minutes = Math.floor(safeSeconds / 60);
+    const rest = safeSeconds % 60;
+    return String(minutes).padStart(2, "0") + ":" + String(rest).padStart(2, "0");
+}
+
+function updateTimerDisplay(){
+    challengeTimer.textContent = formatTime(challengeState.timeRemaining);
+    challengeTimer.classList.toggle("warning", challengeState.timeRemaining <= 60);
+}
+
+function stopChallengeTimer(){
+    if(challengeState.countdownId){
+        window.clearInterval(challengeState.countdownId);
+        challengeState.countdownId = null;
+    }
+}
+
+function startChallengeTimer(){
+    stopChallengeTimer();
+    challengeState.timeRemaining = CHALLENGE_TIME_LIMIT;
+    updateTimerDisplay();
+    challengeState.countdownId = window.setInterval(function(){
+        if(challengeState.completed){
+            return;
+        }
+        challengeState.timeRemaining -= 1;
+        updateTimerDisplay();
+        if(challengeState.timeRemaining <= 0){
+            stopChallengeTimer();
+            completeChallenge("timeout");
+        }
+    }, 1000);
+}
+
+function summaryAffectedScope(){
+    const scenarioId = challengeState.scenario ? challengeState.scenario.id : "";
+    if(scenarioId === "ticket-oversell"){
+        const names = challengeState.attackTargets.map(function(target){ return target.name; });
+        return names.length ? names.join(", ") : "อีเวนต์เป้าหมายไม่ถูกบันทึก";
+    }
+    const scopes = {
+        "news-content-drift":"บทความหลักและเส้นทาง publish ของเนื้อหา",
+        "news-homepage-drift":"hero, ข่าวด่วน และโมดูลหน้าแรก",
+        "shop-data-leak":"customer profile, session และ audit read",
+        "shop-order-anomaly":"cart, order, server-price และ payment state",
+        "ticket-rapid-buyout":"event listing, purchase queue, identity และ inventory"
+    };
+    return scopes[scenarioId] || "ไม่สามารถระบุขอบเขตได้";
+}
+
+function summaryAssessment(outcome){
+    if(outcome !== "restored"){
+        return "ยังควบคุมและกู้คืนไม่ครบก่อนหมดเวลา ควรตรวจ evidence checkpoint และลำดับ control อีกครั้ง";
+    }
+    if(challengeState.stats.mistakes === 0){
+        return "วิเคราะห์เส้นทางได้ถูกต้องโดยไม่ทำให้ monitor signal ขาดช่วง";
+    }
+    if(challengeState.stats.mistakes <= 2){
+        return "กู้คืนสำเร็จ แต่มีการเลือกคำสั่งผิดเส้นทางระหว่างตอบสนอง ควรเทียบหลักฐานก่อนใช้ control";
+    }
+    return "กู้คืนสำเร็จหลังสัญญาณขาดหลายครั้ง ควรใช้คู่มือจับคู่ incident กับ DATA LINK ให้ชัดก่อนดำเนินการ";
+}
+
+function showChallengeSummary(outcome){
+    if(challengeState.summaryShown){
+        return;
+    }
+    challengeState.summaryShown = true;
+    const scenarioId = challengeState.scenario ? challengeState.scenario.id : "";
+    const profile = scenarioReportProfiles[scenarioId] || {
+        target:"unknown target",
+        incident:"unknown incident",
+        impact:"ไม่มีข้อมูลผลกระทบ",
+        evidence:"ไม่มีข้อมูลหลักฐาน",
+        objective:"ไม่มีข้อมูลการตอบสนอง",
+        followUp:"ตรวจสอบ log เพิ่มเติม"
+    };
+    const restored = outcome === "restored";
+    const evidenceFocus = scenarioEvidenceFocus[scenarioId] || "unknown";
+    const controls = challengeState.controlHistory.length
+        ? challengeState.controlHistory.map(function(command){ return "<code>" + escapeHtml(command) + "</code>"; }).join("")
+        : "<span>ยังไม่มี control ที่ผ่านการตรวจลำดับ</span>";
+    const commandTrail = challengeState.commandHistory.length
+        ? challengeState.commandHistory.map(function(command, index){ return "<code>" + String(index + 1).padStart(2, "0") + " / " + escapeHtml(command) + "</code>"; }).join("")
+        : "<span>ไม่มีคำสั่ง</span>";
+    const evidenceText = evidenceReady()
+        ? "surface scan + DATA LINK focus " + evidenceFocus + " ผ่านครบ 2/2"
+        : "หลักฐานผ่าน " + evidenceProgress() + "/2; focus ที่ต้องตรวจคือ " + evidenceFocus;
+    const finalState = restored
+        ? "ยืนยัน prerequisite ครบและกู้คืน clean baseline แล้ว"
+        : "หยุดการจำลองก่อน clean restore สำเร็จ ระบบอาจยังมีผลกระทบค้างอยู่";
+
+    summaryCard.innerHTML = `
+        <h2>Incident Simulation Report</h2>
+        <span class="summary-status${restored ? "" : " failed"}">${restored ? "RESTORED / CONTROLLED" : "TIME EXPIRED / INCOMPLETE"}</span>
+        <div class="summary-grid">
+            <div class="summary-item"><strong>target</strong><span>${escapeHtml(profile.target)}</span></div>
+            <div class="summary-item"><strong>incident</strong><span>${escapeHtml(profile.incident)}</span></div>
+            <div class="summary-item"><strong>time used</strong><span>${escapeHtml(formatTime(CHALLENGE_TIME_LIMIT - challengeState.timeRemaining))}</span></div>
+            <div class="summary-item"><strong>incident stage</strong><span>${challengeState.stage} / 3</span></div>
+            <div class="summary-item"><strong>commands / map views</strong><span>${challengeState.stats.commands} / ${challengeState.stats.mapViews}</span></div>
+            <div class="summary-item"><strong>mistakes / repairs</strong><span>${challengeState.stats.mistakes} / ${challengeState.stats.repairs}</span></div>
+            <div class="summary-item"><strong>evidence checkpoint</strong><span>${evidenceProgress()} / 2</span></div>
+            <div class="summary-item"><strong>post-defense check</strong><span>${challengeState.postValidationComplete ? "STABLE" : "INCOMPLETE"}</span></div>
+        </div>
+        <div class="summary-report">
+            <div class="summary-section wide"><strong>สถานการณ์และผลกระทบ</strong>${escapeHtml(profile.impact)}</div>
+            <div class="summary-section"><strong>ขอบเขตที่ได้รับผล</strong>${escapeHtml(summaryAffectedScope())}</div>
+            <div class="summary-section"><strong>หลักฐานที่ยืนยัน</strong>${escapeHtml(evidenceText)}<br>${escapeHtml(profile.evidence)}</div>
+            <div class="summary-section"><strong>เป้าหมายการป้องกัน</strong>${escapeHtml(profile.objective)}</div>
+            <div class="summary-section"><strong>Control ที่ผ่าน</strong>${controls}</div>
+            <div class="summary-section wide"><strong>สถานะสุดท้าย</strong>${escapeHtml(finalState)}<br>${escapeHtml(summaryAssessment(outcome))}</div>
+            <div class="summary-section wide"><strong>ข้อเสนอแนะหลังเหตุการณ์</strong>${escapeHtml(profile.followUp)}</div>
+            <details class="summary-section wide summary-command-log">
+                <summary>Command trail (${challengeState.commandHistory.length})</summary>
+                <div>${commandTrail}</div>
+            </details>
+        </div>
+        <div class="summary-actions">
+            <button class="summary-close" id="summaryCloseButton" type="button">ปิดรายงาน</button>
+            <button class="summary-next" id="summaryNextButton" type="button">ทำการท้าทายต่อ</button>
+        </div>
+    `;
+    summaryModal.classList.add("open");
+    document.getElementById("summaryCloseButton").addEventListener("click", function(){
+        summaryModal.classList.remove("open");
+    });
+    document.getElementById("summaryNextButton").addEventListener("click", function(){
+        summaryModal.classList.remove("open");
+        stopDataStream();
+        clearChallengeTimers();
+        stopChallengeTimer();
+        challengeState.summaryShown = false;
+        challengeState.validationPending = false;
+        challengeState.postValidationComplete = false;
+        challengeState.repair.active = false;
+        signalRepair.classList.remove("active");
+        signalRepair.setAttribute("aria-hidden", "true");
+        signalRepair.innerHTML = "";
+        closeDataDetail();
+        setDataConsoleOpen(false);
+        startTargetRandomizer();
+    });
+}
+
+function completeChallenge(outcome){
+    if(challengeState.completed){
+        return;
+    }
+    challengeState.completed = true;
+    challengeState.repair.active = false;
+    stopDataStream();
+    clearChallengeTimers();
+    stopChallengeTimer();
+    signalRepair.classList.remove("active");
+    signalRepair.setAttribute("aria-hidden", "true");
+    if(outcome === "timeout"){
+        appendLog("[timer] challenge window expired", "log-warn");
+        setPanel(missionConsole, "หมดเวลาการจำลอง<br>ระบบหยุดรับคำสั่งเพื่อสรุปผลการตรวจสอบ");
+    }
+    showChallengeSummary(outcome);
+}
+
+function shuffleList(items){
+    const copy = items.slice();
+    for(let index = copy.length - 1; index > 0; index -= 1){
+        const swapIndex = Math.floor(Math.random() * (index + 1));
+        const item = copy[index];
+        copy[index] = copy[swapIndex];
+        copy[swapIndex] = item;
+    }
+    return copy;
+}
+
+function triggerSignalRepair(reason){
+    if(challengeState.repair.active || challengeState.completed){
+        return;
+    }
+    challengeState.stats.mistakes += 1;
+    challengeState.repair.active = true;
+    challengeState.repair.connected = 0;
+    const palette = [
+        {id:"red", label:"RED", color:"#ff6767"},
+        {id:"yellow", label:"YEL", color:"#ffcc66"},
+        {id:"green", label:"GRN", color:"#74ff9b"},
+        {id:"cyan", label:"CYN", color:"#74d7ff"},
+        {id:"violet", label:"VIO", color:"#c58bff"}
+    ];
+    const selected = shuffleList(palette).slice(0, 3);
+    const outputs = shuffleList(selected);
+    challengeState.repair.cables = selected.map(function(cable, index){
+        return {
+            id:cable.id,
+            label:cable.label,
+            color:cable.color,
+            outIndex:outputs.findIndex(function(output){
+                return output.id === cable.id;
+            })
+        };
+    });
+    signalRepair.innerHTML = repairTemplate(selected, outputs, reason);
+    signalRepair.classList.add("active");
+    signalRepair.setAttribute("aria-hidden", "false");
+    feedStatus.textContent = "SIGNAL BREAK";
+    systemReadout.textContent = "MONITOR DEVELOP TOOL / REPAIR REQUIRED";
+    appendLog("[signal] monitor interference: repair cable map required", "log-warn");
+    setupRepairInteractions();
+}
+
+function repairTemplate(inputs, outputs, reason){
+    return `
+        <div class="repair-panel">
+            <div class="repair-head">
+                <span>SIGNAL ROUTING FAILURE</span>
+                <span class="repair-hint">ลาก IN ไป OUT สีเดียวกัน</span>
+            </div>
+            <div class="cable-board" id="cableBoard">
+                <svg id="cableSvg" aria-hidden="true"></svg>
+                <div class="jack-column in">
+                    ${inputs.map(function(cable, index){
+                        return '<div class="jack in" data-index="' + index + '" data-color="' + cable.id + '" style="color:' + cable.color + '"><span class="jack-dot"></span><span>IN-' + cable.label + '</span></div>';
+                    }).join("")}
+                </div>
+                <div class="jack-column out">
+                    ${outputs.map(function(cable, index){
+                        return '<div class="jack out" data-index="' + index + '" data-color="' + cable.id + '" style="color:' + cable.color + '"><span>OUT-' + cable.label + '</span><span class="jack-dot"></span></div>';
+                    }).join("")}
+                </div>
+            </div>
+            <div class="repair-footer">
+                <span>reason: ${escapeHtml(reason)}</span>
+                <span class="repair-status" id="repairStatus">0 / 3 linked</span>
+            </div>
+        </div>
+    `;
+}
+
+function pointFor(element, board){
+    const elementRect = element.querySelector(".jack-dot").getBoundingClientRect();
+    const boardRect = board.getBoundingClientRect();
+    return {
+        x:elementRect.left + elementRect.width / 2 - boardRect.left,
+        y:elementRect.top + elementRect.height / 2 - boardRect.top
+    };
+}
+
+function drawCableLine(fromJack, toPoint, color, temp){
+    const board = document.getElementById("cableBoard");
+    const svg = document.getElementById("cableSvg");
+    const start = pointFor(fromJack, board);
+    const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    line.setAttribute("x1", start.x);
+    line.setAttribute("y1", start.y);
+    line.setAttribute("x2", toPoint.x);
+    line.setAttribute("y2", toPoint.y);
+    line.setAttribute("stroke", color);
+    line.setAttribute("stroke-width", temp ? "3" : "4");
+    line.setAttribute("stroke-linecap", "round");
+    line.setAttribute("opacity", temp ? ".75" : ".95");
+    if(temp){
+        line.id = "tempCableLine";
+    }
+    svg.appendChild(line);
+    return line;
+}
+
+function setupRepairInteractions(){
+    const board = document.getElementById("cableBoard");
+    const inputs = Array.from(signalRepair.querySelectorAll(".jack.in"));
+    const outputs = Array.from(signalRepair.querySelectorAll(".jack.out"));
+    const repairStatus = document.getElementById("repairStatus");
+
+    inputs.forEach(function(input){
+        input.addEventListener("pointerdown", function(event){
+            if(input.classList.contains("connected")){
+                return;
+            }
+            event.preventDefault();
+            const boardRect = board.getBoundingClientRect();
+            const color = input.style.color;
+            challengeState.repair.drag = {
+                input:input,
+                line:drawCableLine(input, {x:event.clientX - boardRect.left, y:event.clientY - boardRect.top}, color, true)
+            };
+            input.setPointerCapture(event.pointerId);
+        });
+
+        input.addEventListener("pointermove", function(event){
+            if(!challengeState.repair.drag || challengeState.repair.drag.input !== input){
+                return;
+            }
+            const boardRect = board.getBoundingClientRect();
+            challengeState.repair.drag.line.setAttribute("x2", event.clientX - boardRect.left);
+            challengeState.repair.drag.line.setAttribute("y2", event.clientY - boardRect.top);
+        });
+
+        input.addEventListener("pointerup", function(event){
+            if(!challengeState.repair.drag || challengeState.repair.drag.input !== input){
+                return;
+            }
+            const target = document.elementFromPoint(event.clientX, event.clientY);
+            const output = target ? target.closest(".jack.out") : null;
+            challengeState.repair.drag.line.remove();
+            challengeState.repair.drag = null;
+            if(output && output.dataset.color === input.dataset.color && !output.classList.contains("connected")){
+                const boardRect = board.getBoundingClientRect();
+                const end = pointFor(output, board);
+                drawCableLine(input, end, input.style.color, false);
+                input.classList.add("connected");
+                output.classList.add("connected");
+                challengeState.repair.connected += 1;
+                repairStatus.textContent = challengeState.repair.connected + " / 3 linked";
+                if(challengeState.repair.connected >= 3){
+                    finishSignalRepair();
+                }
+            }else{
+                repairStatus.textContent = "mismatch / try again";
+            }
+        });
+    });
+
+    outputs.forEach(function(output){
+        output.addEventListener("pointerdown", function(event){
+            event.preventDefault();
+        });
+    });
+}
+
+function finishSignalRepair(){
+    challengeState.repair.active = false;
+    challengeState.stats.repairs += 1;
+    appendLog("[signal] cable route restored; monitor feed recovered", "log-ok");
+    window.setTimeout(function(){
+        signalRepair.classList.remove("active");
+        signalRepair.setAttribute("aria-hidden", "true");
+        signalRepair.innerHTML = "";
+        feedStatus.textContent = "LIVE";
+        systemReadout.textContent = "CHALLENGE SYSTEM / TARGET ONLINE";
+    }, 380);
+}
+
+function setDataConsoleOpen(open){
+    dataConsole.classList.toggle("open", open);
+    if(open){
+        dataConsole.classList.remove("opening");
+        void dataConsole.offsetWidth;
+        dataConsole.classList.add("opening");
+        window.setTimeout(function(){
+            dataConsole.classList.remove("opening");
+        }, 620);
+    }
+    dataMapStatus.textContent = open ? "MAP OPEN" : "STANDBY";
+}
+
+function renderDataMap(){
+    const target = challengeState.target;
+    if(!target){
+        dataMapTitle.textContent = "INTERNAL DATA MAP";
+        dataMapStatus.textContent = "STANDBY";
+        dataMapGraph.innerHTML = "";
+        dataMapTrace.textContent = "รอการเชื่อม target surface";
+        return;
+    }
+    const profile = dataProfiles[target.type] || dataProfiles.news;
+    const focus = challengeState.dataMap.focus || [];
+    const level = challengeState.dataMap.level || "idle";
+    dataMapTitle.textContent = "INTERNAL DATA MAP / " + target.code;
+    dataMapStatus.textContent = level === "alert" ? "ANOMALY" : level === "warn" ? "WATCH" : dataConsole.classList.contains("open") ? "MAP OPEN" : "STANDBY";
+    dataMapGraph.innerHTML = profile.map(function(node){
+        const active = focus.includes(node.id);
+        const stateClass = active && level === "alert" ? " alert" : active && level === "warn" ? " warn" : "";
+        const focusClass = active ? " focus" : "";
+        return '<div class="data-node' + stateClass + focusClass + '" data-node="' + node.id + '"><strong>' + escapeHtml(node.label) + '</strong><span>' + escapeHtml(node.sub) + '</span></div>';
+    }).join("");
+    dataMapTrace.textContent = challengeState.dataMap.trace || "เชื่อมแผนผังข้อมูลแล้ว แต่ยังไม่มี anomaly ที่เปิดเผย";
+}
+
+function updateDataMap(focus, level, trace){
+    challengeState.dataMap = {
+        focus:focus || [],
+        level:level || "idle",
+        trace:trace || "data map updated"
+    };
+    renderDataMap();
+}
+
+function stopDataStream(){
+    if(challengeState.dataStreamId){
+        window.clearInterval(challengeState.dataStreamId);
+        challengeState.dataStreamId = null;
+    }
+}
+
+function customerLeakRecords(){
+    return [
+        {id:"CUS-01842", name:"Narin K.", email:"narin.k@example.test", password:"greenmarket#42", phone:"089-555-0142", address:"88/12 ถนนสุขุมวิท กรุงเทพฯ", token:"pay_tok_81A9", order:"Everyday Cup x2", session:"sess_4f2a9d"},
+        {id:"CUS-03177", name:"Mali P.", email:"mali.p@example.test", password:"mali2026!", phone:"086-555-3177", address:"14 ถนนนิมมานฯ เชียงใหม่", token:"pay_tok_73B1", order:"Canvas Tote x1", session:"sess_82cb11"},
+        {id:"CUS-05206", name:"Thanawat S.", email:"thanawat.s@example.test", password:"shop123456", phone:"081-555-5206", address:"220/9 เมืองขอนแก่น", token:"pay_tok_19D4", order:"Desk Lamp x1", session:"sess_991fe0"},
+        {id:"CUS-06491", name:"Pimchanok R.", email:"pimchanok.r@example.test", password:"pim@home88", phone:"092-555-6491", address:"51/3 เมืองภูเก็ต", token:"pay_tok_55C8", order:"Travel Case x3", session:"sess_b7a412"},
+        {id:"CUS-07830", name:"Kittisak N.", email:"kittisak.n@example.test", password:"welcome789", phone:"094-555-7830", address:"9/21 เมืองนครราชสีมา", token:"pay_tok_02F7", order:"Everyday Cup x1", session:"sess_0cd883"},
+        {id:"CUS-08314", name:"Sirin T.", email:"sirin.t@example.test", password:"sirin0101", phone:"087-555-8314", address:"112 เมืองอุดรธานี", token:"pay_tok_48E2", order:"Wireless Speaker x1", session:"sess_7e31aa"},
+        {id:"CUS-09125", name:"Arthit W.", email:"arthit.w@example.test", password:"arthit@work", phone:"090-555-9125", address:"33/7 เมืองระยอง", token:"pay_tok_64A0", order:"Notebook Set x4", session:"sess_c1182d"}
+    ];
+}
+
+function renderCustomerLeakRecord(record, sequence){
+    const grid = dataDetail.querySelector(".data-detail-grid");
+    if(!grid){
+        return;
+    }
+    const heading = dataDetail.querySelector(".data-detail-head span:first-child");
+    if(heading){
+        heading.textContent = "CUSTOMER PROFILE / LIVE ACCESS #" + String(sequence).padStart(3, "0");
+    }
+    grid.classList.add("streaming");
+    grid.innerHTML = `
+        <div class="data-detail-cell"><strong>customer</strong><span>${escapeHtml(record.name)} / ${escapeHtml(record.id)}</span></div>
+        <div class="data-detail-cell"><strong>email</strong><span>${escapeHtml(record.email)}</span></div>
+        <div class="data-detail-cell"><strong>password / unsafe plain field</strong><span>${escapeHtml(record.password)}</span></div>
+        <div class="data-detail-cell"><strong>phone</strong><span>${escapeHtml(record.phone)}</span></div>
+        <div class="data-detail-cell"><strong>shipping address</strong><span>${escapeHtml(record.address)}</span></div>
+        <div class="data-detail-cell"><strong>payment token</strong><span>${escapeHtml(record.token)}</span></div>
+        <div class="data-detail-cell"><strong>recent order</strong><span>${escapeHtml(record.order)}</span></div>
+        <div class="data-detail-cell"><strong>session / packet ${sequence}</strong><span>${escapeHtml(record.session)}</span></div>
+    `;
+    dataMapStatus.textContent = "DATA EXPOSURE";
+    dataMapTrace.textContent = "unauthorized profile read: " + record.id + " / packet " + sequence;
+}
+
+function startCustomerLeakStream(){
+    stopDataStream();
+    if(!challengeState.scenario || challengeState.scenario.id !== "shop-data-leak" || challengeState.stage < 1){
+        return;
+    }
+    if(challengeState.dataView !== "data" && challengeState.dataView !== "customer"){
+        return;
+    }
+    const records = customerLeakRecords();
+    let sequence = 0;
+    renderCustomerLeakRecord(records[0], sequence);
+    challengeState.dataStreamId = window.setInterval(function(){
+        sequence += 1;
+        const record = records[sequence % records.length];
+        renderCustomerLeakRecord(record, sequence);
+    }, 520);
+}
+
+function renderBotSwarmFrame(sequence){
+    const grid = dataDetail.querySelector(".data-detail-grid");
+    if(!grid){
+        return;
+    }
+    const heading = dataDetail.querySelector(".data-detail-head span:first-child");
+    const activeBots = 84 + ((sequence * 37) % 260);
+    const requests = 190 + ((sequence * 83) % 780);
+    const targetNames = ["Luna Blue", "Riverstone", "Neon Lights", "Pulse District", "Sierra Moon"];
+    const target = targetNames[sequence % targetNames.length];
+    const botId = "BOT-" + (0xA31F + sequence * 97).toString(16).toUpperCase();
+    if(heading){
+        heading.textContent = "BOT SWARM / RESTOCK WATCH #" + String(sequence).padStart(3, "0");
+    }
+    grid.classList.add("streaming");
+    grid.innerHTML = `
+        <div class="data-detail-cell"><strong>active bots</strong><span>${activeBots} sessions</span></div>
+        <div class="data-detail-cell"><strong>bot sample</strong><span>${escapeHtml(botId)}</span></div>
+        <div class="data-detail-cell"><strong>requests / second</strong><span>${requests} req/s</span></div>
+        <div class="data-detail-cell"><strong>identity</strong><span>${sequence % 3 + 1} verified / ${activeBots} total</span></div>
+        <div class="data-detail-cell"><strong>target event</strong><span>${escapeHtml(target)}</span></div>
+        <div class="data-detail-cell"><strong>buy quantity</strong><span>${8 + (sequence % 17)} tickets / bot</span></div>
+        <div class="data-detail-cell"><strong>restock watcher</strong><span>ARMED / auto-buy loop</span></div>
+        <div class="data-detail-cell"><strong>inventory forecast</strong><span>+120 tickets -> 0 in ${(0.6 + (sequence % 5) * .1).toFixed(1)}s</span></div>
+    `;
+    dataMapStatus.textContent = "BOT SWARM";
+    dataMapTrace.textContent = activeBots + " bots waiting / new inventory will be consumed immediately";
+}
+
+function renderInventoryDrainFrame(sequence){
+    const grid = dataDetail.querySelector(".data-detail-grid");
+    if(!grid){
+        return;
+    }
+    const heading = dataDetail.querySelector(".data-detail-head span:first-child");
+    const events = challengeState.attackTargets.length ? challengeState.attackTargets : ticketInventoryTargets.slice(0, 1);
+    const eventData = events[sequence % events.length];
+    const oversold = 18 + ((sequence * 7) % 64);
+    const sold = eventData.capacity + oversold;
+    const drainRate = 46 + ((sequence * 19) % 130);
+    if(heading){
+        heading.textContent = "INVENTORY DRAIN / LEDGER FRAME #" + String(sequence).padStart(3, "0");
+    }
+    grid.classList.add("streaming");
+    grid.innerHTML = `
+        <div class="data-detail-cell"><strong>event</strong><span>${escapeHtml(eventData.name)}</span></div>
+        <div class="data-detail-cell"><strong>capacity</strong><span>${eventData.capacity} tickets</span></div>
+        <div class="data-detail-cell"><strong>sold</strong><span>${sold} tickets</span></div>
+        <div class="data-detail-cell"><strong>available</strong><span>-${oversold} / negative stock</span></div>
+        <div class="data-detail-cell"><strong>reserve pool</strong><span>0 tickets</span></div>
+        <div class="data-detail-cell"><strong>drain rate</strong><span>${drainRate} tickets/s</span></div>
+        <div class="data-detail-cell"><strong>restock probe</strong><span>+100 -> 0 immediately</span></div>
+        <div class="data-detail-cell"><strong>ledger state</strong><span>DESYNC / write still active</span></div>
+    `;
+    dataMapStatus.textContent = "INVENTORY DRAIN";
+    dataMapTrace.textContent = events.length + " targeted event" + (events.length > 1 ? "s" : "") + " / " + eventData.name + " inventory below zero";
+}
+
+function startInventoryDrainStream(){
+    stopDataStream();
+    if(!challengeState.scenario || challengeState.scenario.id !== "ticket-oversell" || challengeState.stage < 1){
+        return;
+    }
+    if(challengeState.dataView !== "inventory" && challengeState.dataView !== "ticket"){
+        return;
+    }
+    let sequence = 0;
+    renderInventoryDrainFrame(sequence);
+    challengeState.dataStreamId = window.setInterval(function(){
+        sequence += 1;
+        renderInventoryDrainFrame(sequence);
+    }, 540);
+}
+
+function startBotSwarmStream(){
+    stopDataStream();
+    if(!challengeState.scenario || challengeState.scenario.id !== "ticket-rapid-buyout" || challengeState.stage < 1){
+        return;
+    }
+    if(challengeState.dataView !== "identity" && challengeState.dataView !== "ticket" && challengeState.dataView !== "inventory"){
+        return;
+    }
+    let sequence = 0;
+    renderBotSwarmFrame(sequence);
+    challengeState.dataStreamId = window.setInterval(function(){
+        sequence += 1;
+        renderBotSwarmFrame(sequence);
+    }, 480);
+}
+
+function startScenarioDataStream(){
+    if(challengeState.scenario && challengeState.scenario.id === "shop-data-leak"){
+        startCustomerLeakStream();
+    }else if(challengeState.scenario && challengeState.scenario.id === "ticket-oversell"){
+        startInventoryDrainStream();
+    }else if(challengeState.scenario && challengeState.scenario.id === "ticket-rapid-buyout"){
+        startBotSwarmStream();
+    }else{
+        stopDataStream();
+    }
+}
+
+function closeDataDetail(){
+    stopDataStream();
+    challengeState.dataView = null;
+    dataDetail.classList.remove("active", "loading");
+    dataDetail.setAttribute("aria-hidden", "true");
+    dataDetail.innerHTML = "";
+    dataMapStatus.textContent = dataConsole.classList.contains("open") ? "MAP OPEN" : "STANDBY";
+}
+
+function recordDataEvent(title, detail, level){
+    challengeState.dataEvents.push({
+        title:String(title || "internal event"),
+        detail:String(detail || "no detail"),
+        level:level === "alert" ? "alert" : "watch"
+    });
+    challengeState.dataEvents = challengeState.dataEvents.slice(-6);
+    dataConsoleToggle.textContent = "DATA LINK CONSOLE [" + challengeState.dataEvents.length + "]";
+    dataMapTrace.textContent = title + ": " + detail;
+    dataMapStatus.textContent = level === "alert" ? "ANOMALY" : "NEW EVENT";
+    appendLog("[internal] " + title, level === "alert" ? "log-warn" : "");
+}
+
+function showDataEvents(){
+    stopDataStream();
+    challengeState.dataView = "events";
+    const events = challengeState.dataEvents.slice(-4).reverse();
+    setDataConsoleOpen(true);
+    dataDetail.classList.add("active", "loading");
+    dataDetail.setAttribute("aria-hidden", "false");
+    dataMapStatus.textContent = "READING EVENTS";
+    dataDetail.innerHTML = `
+        <div class="data-detail-head">
+            <span>INTERNAL EVENT FEED</span>
+            <span class="data-detail-back">sentinel map --back</span>
+        </div>
+        <div class="data-progress"><span></span></div>
+        <div class="data-detail-cell"><strong>event buffer</strong><span>กำลังอ่านข้อมูลจากช่องทางหลังบ้าน...</span></div>
+    `;
+    window.setTimeout(function(){
+        dataDetail.classList.remove("loading");
+        dataMapStatus.textContent = events.some(function(item){return item.level === "alert";}) ? "ANOMALY" : "EVENT FEED";
+        dataDetail.innerHTML = `
+            <div class="data-detail-head">
+                <span>INTERNAL EVENT FEED</span>
+                <span class="data-detail-back">sentinel map --back</span>
+            </div>
+            <div class="data-event-list">
+                ${events.length ? events.map(function(item){
+                    return '<div class="data-event-row ' + item.level + '"><strong>' + escapeHtml(item.title) + '</strong><span>' + escapeHtml(item.detail) + '</span></div>';
+                }).join("") : '<div class="data-event-row"><strong>no events</strong><span>ยังไม่พบข้อมูลหลังบ้านที่ผิดปกติ</span></div>'}
+            </div>
+        `;
+    }, 720);
+}
+
+function dataDetailCells(keyword){
+    const targetType = challengeState.target ? challengeState.target.type : "news";
+    const scenarioId = challengeState.scenario ? challengeState.scenario.id : "";
+    const map = {
+        news:{
+            content:[
+                ["publish route", scenarioId === "news-homepage-drift" ? "homepage module write / cache path" : "article body write / publish queue"],
+                ["baseline hash", challengeState.stage >= 2 ? "mismatch detected" : "waiting for scan"],
+                ["visible clue", "headline, breaking feed, or article tone"],
+                ["safe action", "contain content -> verify baseline"]
+            ],
+            baseline:[
+                ["baseline source", "editor approved copy"],
+                ["cache copy", challengeState.stage >= 2 ? "not trusted" : "watch"],
+                ["publish queue", "manual compare required"],
+                ["safe action", "verify baseline -> restore clean"]
+            ]
+        },
+        shop:{
+            data:[
+                ["customer cache", scenarioId === "shop-data-leak" ? "external read pattern" : "normal watch"],
+                ["session", "auth boundary / account state"],
+                ["operator signal", "profile read from public session"],
+                ["safe action", "contain data -> verify server-price"]
+            ],
+            customer:[
+                ["customer profile", "name/email/order fragment"],
+                ["access path", scenarioId === "shop-data-leak" ? "not account page" : "normal account page"],
+                ["audit", "read event requires containment"],
+                ["safe action", "contain data"]
+            ],
+            checkout:[
+                ["cart state", scenarioId === "shop-order-anomaly" ? "state skip suspected" : "normal watch"],
+                ["price source", "server-price must answer first"],
+                ["payment route", "approval path not fully trusted"],
+                ["safe action", "verify server-price -> contain checkout"]
+            ],
+            order:[
+                ["order state", "created / reviewed / approved"],
+                ["unexpected write", scenarioId === "shop-order-anomaly" ? "non-checkout path" : "none yet"],
+                ["price compare", "server source required"],
+                ["safe action", "contain checkout"]
+            ]
+        },
+        ticket:{
+            inventory:[
+                ["inventory ledger", scenarioId === "ticket-oversell" ? "count mismatch" : "normal watch"],
+                ["event listing", "visible count may lag ledger"],
+                ["oversell risk", challengeState.stage >= 2 ? "active" : "watch"],
+                ["safe action", "sync inventory -> verify baseline"]
+            ],
+            ticket:[
+                ["ticket count", "inventory / listing / ledger"],
+                ["purchase pressure", "queue can distort availability"],
+                ["operator signal", "compare ledger before restore"],
+                ["safe action", "sync inventory"]
+            ],
+            identity:[
+                ["identity gate", scenarioId === "ticket-rapid-buyout" ? "weak sessions detected" : "normal watch"],
+                ["queue pressure", "rapid purchase attempts"],
+                ["limit check", "per account purchase cap"],
+                ["safe action", "identity step-up -> sync inventory"]
+            ]
+        }
+    };
+    return (map[targetType] && map[targetType][keyword]) || [["status", "not found"], ["target", targetType], ["focus", keyword], ["safe action", "map back"]];
+}
+
+function showDataDetail(keyword, onReady){
+    stopDataStream();
+    challengeState.dataView = keyword;
+    const cells = dataDetailCells(keyword);
+    dataDetail.classList.add("active", "loading");
+    dataDetail.setAttribute("aria-hidden", "false");
+    dataMapStatus.textContent = "LOADING";
+    dataDetail.innerHTML = `
+        <div class="data-detail-head">
+            <span>DATA VIEW / ${escapeHtml(keyword.toUpperCase())}</span>
+            <span class="data-detail-back">sentinel map --back</span>
+        </div>
+        <div class="data-progress"><span></span></div>
+        <div class="data-detail-grid">
+            <div class="data-detail-cell"><strong>loading</strong><span>กำลังดึงข้อมูลจาก internal map...</span></div>
+            <div class="data-detail-cell"><strong>surface</strong><span>${escapeHtml(challengeState.target.code)}</span></div>
+        </div>
+    `;
+    window.setTimeout(function(){
+        dataDetail.classList.remove("loading");
+        dataMapStatus.textContent = "DATA VIEW";
+        dataDetail.innerHTML = `
+            <div class="data-detail-head">
+                <span>DATA VIEW / ${escapeHtml(keyword.toUpperCase())}</span>
+                <span class="data-detail-back">sentinel map --back</span>
+            </div>
+            <div class="data-detail-grid">
+                ${cells.map(function(cell){
+                    return '<div class="data-detail-cell"><strong>' + escapeHtml(cell[0]) + '</strong><span>' + escapeHtml(cell[1]) + '</span></div>';
+                }).join("")}
+            </div>
+        `;
+        startScenarioDataStream();
+        if(typeof onReady === "function"){
+            onReady();
+        }
+    }, 900);
+}
+
+function focusDataMap(keyword){
+    if(!challengeState.target){
+        appendLog("[map] no target surface attached", "log-warn");
+        return;
+    }
+    const focusTable = {
+        content:["content", "publish", "baseline", "feed"],
+        data:["customer", "auth", "audit"],
+        customer:["customer", "auth", "audit"],
+        checkout:["cart", "order", "payment", "price"],
+        order:["cart", "order", "payment", "price"],
+        inventory:["inventory", "ledger", "events"],
+        ticket:["inventory", "queue", "purchase", "ledger"],
+        identity:["identity", "queue", "limit"],
+        baseline:["baseline", "monitor", "ledger", "price"]
+    };
+    const allowedByTarget = {
+        news:["content", "baseline"],
+        shop:["data", "customer", "checkout", "order"],
+        ticket:["inventory", "ticket", "identity"]
+    };
+    const allowed = allowedByTarget[challengeState.target.type] || [];
+    if(!allowed.includes(keyword)){
+        closeDataDetail();
+        appendLog("[map] focus " + keyword + " not found on " + challengeState.target.code, "log-warn");
+        dataMapTrace.textContent = "not found: " + keyword + " ไม่มี node ที่สัมพันธ์กับ target นี้";
+        dataMapStatus.textContent = "NOT FOUND";
+        return;
+    }
+    const focus = focusTable[keyword] || (dataProfiles[challengeState.target.type] || []).slice(0, 4).map(function(node){
+        return node.id;
+    });
+    updateDataMap(focus, "warn", "manual focus: " + keyword + " / ใช้ดูความสัมพันธ์ ไม่ได้แก้ไขระบบ");
+    setDataConsoleOpen(true);
+    const evidenceEligible = challengeState.stage >= 1 && challengeState.scanCompleted;
+    showDataDetail(keyword, function(){
+        const requiredFocus = challengeState.scenario ? scenarioEvidenceFocus[challengeState.scenario.id] : null;
+        if(evidenceEligible && keyword === requiredFocus){
+            addEvidence("map:" + keyword);
+            appendLog("[evidence 2/2] internal path correlated with surface symptom", "log-ok");
+            setPanel(missionConsole, "EVIDENCE CHECKPOINT COMPLETE<br>surface symptom และ internal path สัมพันธ์กันแล้ว<br>ใช้คู่มือเลือก control sequence ต่อไป");
+        }else if(evidenceEligible){
+            appendLog("[evidence] focus read completed; no correlation with current surface clue", "log-warn");
+        }else{
+            appendLog("[evidence] focus is unverified until surface scan is recorded", "log-warn");
+        }
+    });
+    challengeState.stats.mapViews += 1;
+    appendLog("[map] focus " + keyword + " opened in data console", "log-ok");
+}
+
+function updateDataMapForStage(stage){
+    if(!challengeState.scenario){
+        return;
+    }
+    const id = challengeState.scenario.id;
+    const level = stage >= 3 ? "alert" : "warn";
+    if(id === "news-content-drift"){
+        updateDataMap(["content", "publish", "baseline", "monitor"], level, "content hash drift ผ่าน publish surface โดย baseline ยังไม่ยืนยัน");
+        appendLog("[operator] publish surface updated outside normal editorial route", "log-warn");
+    }else if(id === "news-homepage-drift"){
+        updateDataMap(["site", "feed", "cache", "publish"], level, "homepage modules เปลี่ยนพร้อมกันจาก cache/publish path");
+        appendLog("[operator] homepage module write detected from unexpected route", "log-warn");
+    }else if(id === "shop-data-leak"){
+        updateDataMap(["customer", "auth", "audit"], level, "customer cache ถูกอ่านจากช่องทางที่ไม่ใช่หน้า account ปกติ");
+        appendLog("[operator] unusual customer profile read from public session", "log-warn");
+        startScenarioDataStream();
+    }else if(id === "shop-order-anomaly"){
+        updateDataMap(["cart", "order", "price", "payment"], level, "order state เปลี่ยนก่อน server-price verification เสร็จ");
+        appendLog("[operator] order state modified through non-checkout path", "log-warn");
+    }else if(id === "ticket-oversell"){
+        const targetCount = challengeState.attackTargets.length;
+        updateDataMap(["inventory", "ledger", "events"], level, "พบ inventory drain กระจุกอยู่ที่ " + targetCount + " event ID / รายการอื่นยังตอบกลับปกติ");
+        appendLog("[operator] targeted inventory drain across " + targetCount + " event(s)", "log-warn");
+        startScenarioDataStream();
+    }else if(id === "ticket-rapid-buyout"){
+        updateDataMap(["queue", "identity", "purchase", "limit"], level, "purchase queue ถูกเร่งจาก session ที่ identity ยังไม่แน่น");
+        appendLog("[operator] rapid purchase pressure from weak identity sessions", "log-warn");
+        startScenarioDataStream();
+    }
+}
+
+function clearChallengeTimers(){
+    challengeState.activeTimers.forEach(function(timerId){
+        window.clearTimeout(timerId);
+    });
+    challengeState.activeTimers = [];
+}
+
+function scheduleChallenge(delay, fn){
+    const timerId = window.setTimeout(function(){
+        challengeState.activeTimers = challengeState.activeTimers.filter(function(id){
+            return id !== timerId;
+        });
+        if(!challengeState.recovered){
+            fn();
+        }
+    }, delay);
+    challengeState.activeTimers.push(timerId);
+}
+
+function postToTarget(message){
+    const frame = document.querySelector(".target-frame");
+    if(!frame || !frame.contentWindow){
+        return false;
+    }
+    frame.contentWindow.postMessage(message, "*");
+    return true;
+}
+
+function syncTargetBridge(){
+    if(!challengeState.scenario || challengeState.recovered){
+        return;
+    }
+    if(challengeState.stage > 0){
+        postToTarget({
+            type:"challenge:stage",
+            scenario:challengeState.scenario.id,
+            stage:challengeState.stage,
+            targets:challengeState.attackTargets.map(function(target){ return target.id; })
+        });
+    }
+}
+
+window.addEventListener("message", function(event){
+    const frame = document.querySelector(".target-frame");
+    if(!frame || event.source !== frame.contentWindow){
+        return;
+    }
+    const data = event.data || {};
+    if(data.type === "challenge:bridge-ready"){
+        challengeState.bridgeReady = true;
+        appendLog("[bridge] target channel ready", "log-ok");
+        syncTargetBridge();
+    }else if(data.type === "challenge:internal-event"){
+        recordDataEvent(data.title, data.detail, data.level);
+    }
+});
+
+function getTargetDocument(){
+    const frame = document.querySelector(".target-frame");
+    if(!frame){
+        return null;
+    }
+    try{
+        return frame.contentDocument || frame.contentWindow.document;
+    }catch(error){
+        appendLog("[monitor] target document access blocked", "log-warn");
+        return null;
+    }
+}
+
+function injectTargetStyle(doc){
+    if(!doc || doc.getElementById("challengeTargetStyle")){
+        return;
+    }
+    const style = doc.createElement("style");
+    style.id = "challengeTargetStyle";
+    style.textContent = `
+        .challenge-drift{outline:2px solid rgba(185,24,24,.22); background:rgba(255,240,210,.16) !important}
+        .challenge-soft-mark{box-shadow:inset 0 -8px 0 rgba(255,204,102,.24)}
+        .challenge-panel{position:fixed;right:24px;bottom:24px;z-index:9999;max-width:330px;border:1px solid rgba(35,118,62,.35);background:rgba(255,255,255,.94);box-shadow:0 16px 36px rgba(0,0,0,.18);font:13px/1.5 Arial,sans-serif;color:#17351f;padding:12px}
+        .challenge-panel strong{display:block;margin-bottom:5px;color:#135f2e}
+        .challenge-panel.alert{border-color:rgba(185,24,24,.42);color:#4a1919}
+        .challenge-panel.alert strong{color:#9f1d1d}
+        .challenge-badge{display:inline-block;margin:4px 6px 0 0;padding:4px 7px;border-radius:999px;background:#fff2be;color:#6a4300;font-size:12px}
+        .challenge-ghost{opacity:.58;filter:saturate(.7)}
+        .challenge-restored{outline:2px solid rgba(35,118,62,.35) !important;background:rgba(228,255,236,.42) !important}
+    `;
+    doc.head.appendChild(style);
+}
+
+function targetPanel(doc, html, alert){
+    if(!doc){
+        return;
+    }
+    injectTargetStyle(doc);
+    let panel = doc.getElementById("challengeSignalPanel");
+    if(!panel){
+        panel = doc.createElement("div");
+        panel.id = "challengeSignalPanel";
+        doc.body.appendChild(panel);
+    }
+    panel.className = "challenge-panel" + (alert ? " alert" : "");
+    panel.innerHTML = html;
+}
+
+function firstMatch(doc, selectors){
+    for(const selector of selectors){
+        const node = doc.querySelector(selector);
+        if(node){
+            return node;
+        }
+    }
+    return null;
+}
+
+function challengeOverlay(text, tone){
+    const parser = document.createElement("div");
+    parser.innerHTML = text;
+    const heading = parser.querySelector("strong");
+    const title = heading ? heading.textContent : "internal event";
+    const detail = parser.textContent.replace(title, "").trim();
+    recordDataEvent(title, detail, tone === "alert" ? "alert" : "watch");
+}
+
+function applyNewsContentStage(doc, stage){
+    injectTargetStyle(doc);
+    if(stage === 1){
+        const headline = firstMatch(doc, [".article h2", ".hero h2", "h2"]);
+        if(headline){
+            headline.classList.add("challenge-soft-mark");
+            headline.textContent = "ความจริงที่พวกเขาไม่อยากให้คุณเห็น กำลังถูกซ่อนจากคนทั้งเมือง";
+        }
+        appendLog("[signal] minor text drift detected in editorial surface", "log-warn");
+    }
+    if(stage === 2){
+        const paragraph = firstMatch(doc, [".article p:nth-of-type(3)", ".article p:nth-of-type(2)", "main p"]);
+        if(paragraph){
+            paragraph.classList.add("challenge-drift");
+            paragraph.textContent = "อย่ามัวรอคำยืนยัน คนที่บอกให้ใจเย็นกำลังช่วยกันปิดความจริง แชร์เรื่องนี้ออกไปให้มากที่สุดก่อนทุกอย่างจะถูกลบ";
+        }
+        challengeOverlay("<strong>Integrity monitor</strong> พบข้อความข่าวบางส่วนไม่ตรงกับ baseline เดิม แต่ระบบป้องกันยังไม่สามารถย้อนกลับอัตโนมัติ", "alert");
+        appendLog("[signal] article baseline mismatch widening", "log-warn");
+    }
+    if(stage === 3){
+        const breaking = firstMatch(doc, [".breaking marquee", ".breaking"]);
+        if(breaking){
+            breaking.classList.add("challenge-drift");
+            breaking.textContent = "ใครยังนิ่งเฉยก็เท่ากับยอมให้ทุกอย่างพัง แชร์ต่อเดี๋ยวนี้ก่อนจะสายเกินไป";
+        }
+        appendLog("[breach] content channel no longer trusted", "log-warn");
+    }
+}
+
+function applyNewsHomepageStage(doc, stage){
+    injectTargetStyle(doc);
+    if(stage === 1){
+        const hero = firstMatch(doc, [".hero h2", "h1", "h2"]);
+        if(hero){
+            hero.classList.add("challenge-soft-mark");
+            hero.textContent = "พวกเขาหลอกคุณมานานพอแล้ว ถึงเวลาทวงคืนความจริงด้วยตัวเอง";
+        }
+        appendLog("[signal] homepage copy changed outside publish window", "log-warn");
+    }
+    if(stage === 2){
+        const cards = doc.querySelectorAll(".card h4, aside p strong");
+        cards.forEach(function(card, index){
+            if(index < 3){
+                card.classList.add("challenge-drift");
+                card.textContent = index % 2 === 0 ? "คนที่ไม่แชร์กำลังเข้าข้างผู้ปิดบังความจริง" : "หยุดเชื่อคำชี้แจงเดิม ทุกอย่างแย่กว่าที่พวกเขายอมรับ";
+            }
+        });
+        challengeOverlay("<strong>Sentinel monitor</strong> พบหลายบล็อกเปลี่ยนเนื้อหาแบบไม่ผ่าน publish queue", "alert");
+        appendLog("[signal] homepage modules drifting together", "log-warn");
+    }
+    if(stage === 3){
+        const nav = firstMatch(doc, [".navbar", ".brand", "header"]);
+        if(nav){
+            nav.classList.add("challenge-drift");
+            nav.textContent = "หน้าแรกถูกยึดข้อความนำเสนอชั่วคราว";
+        }
+        appendLog("[breach] homepage narrative control degraded", "log-warn");
+    }
+}
+
+function applyShopLeakStage(doc, stage){
+    injectTargetStyle(doc);
+    if(stage === 1){
+        challengeOverlay("<strong>Cache preview</strong> session fragment: cust_1842 / email hash / saved address flag", "");
+        appendLog("[signal] customer cache fragment visible on public surface", "log-warn");
+    }
+    if(stage === 2){
+        challengeOverlay("<strong>Customer data preview</strong> Narin K. / narin.store@example.test / last order: everyday cup x2 / address token exposed", "alert");
+        const account = firstMatch(doc, [".nav a[href*='login']", ".nav-link", "header a"]);
+        if(account){
+            account.classList.add("challenge-soft-mark");
+            account.textContent = "Narin K. / ที่อยู่จัดส่งล่าสุด";
+        }
+        appendLog("[signal] data egress exceeds normal checkout boundary", "log-warn");
+    }
+    if(stage === 3){
+        const body = doc.body;
+        body.classList.add("challenge-ghost");
+        appendLog("[breach] customer data exposure persists without containment", "log-warn");
+    }
+}
+
+function applyShopOrderStage(doc, stage){
+    injectTargetStyle(doc);
+    if(stage === 1){
+        const price = firstMatch(doc, [".price", ".price-text", "[class*='price']", ".product-card strong"]);
+        if(price){
+            price.classList.add("challenge-soft-mark");
+            price.textContent = "฿1 ราคาพิเศษเฉพาะรอบนี้";
+        }
+        challengeOverlay("<strong>Order validator</strong> พบ request ที่ข้ามการตรวจราคาบางขั้น แต่ยังไม่กระทบทุกสินค้า", "");
+        appendLog("[signal] server price validation delayed", "log-warn");
+    }
+    if(stage === 2){
+        challengeOverlay("<strong>Payment route anomaly</strong> มีคำสั่งซื้อจำลองผ่านเส้นทาง checkout ที่ลำดับตรวจไม่ครบ / price mismatch / order state skip", "alert");
+        const cards = doc.querySelectorAll(".product-card, .cart-item, article, .card");
+        cards.forEach(function(card, index){
+            if(index < 2){
+                card.classList.add("challenge-drift");
+            }
+        });
+        appendLog("[signal] order flow no longer matches protected sequence", "log-warn");
+    }
+    if(stage === 3){
+        challengeOverlay("<strong>Payment approved queue</strong> รายการจำลองบางส่วนถูกทำเครื่องหมายสำเร็จโดยไม่ผ่านการตรวจครบ", "alert");
+        appendLog("[breach] checkout sequence control bypass remains active", "log-warn");
+    }
+}
+
+function applyTicketOversellStage(doc, stage){
+    injectTargetStyle(doc);
+    const targetIds = challengeState.attackTargets.map(function(target){ return target.id; });
+    const targetCards = Array.from(doc.querySelectorAll(".event-card")).filter(function(card){
+        const href = card.getAttribute("href") || "";
+        return targetIds.some(function(id){ return href.includes("id=" + id); });
+    });
+    const buyButton = doc.getElementById("buyButton");
+    const detailId = doc.defaultView ? new URLSearchParams(doc.defaultView.location.search).get("id") : null;
+    const detailTargeted = detailId && targetIds.includes(detailId);
+
+    function setTicketState(card, text, oversold){
+        if(!card){ return; }
+        card.classList.add("challenge-drift");
+        if(oversold){ card.classList.add("challenge-soft-mark"); }
+        let badge = card.querySelector(".challenge-badge");
+        if(!badge){
+            badge = doc.createElement("span");
+            badge.className = "challenge-badge";
+            (card.querySelector(".event-body") || card).appendChild(badge);
+        }
+        badge.textContent = text;
+    }
+
+    function closeDetail(text){
+        if(!buyButton || !detailTargeted){ return; }
+        buyButton.disabled = true;
+        buyButton.textContent = text;
+        buyButton.classList.add("challenge-drift");
+    }
+
+    if(stage === 1){
+        targetCards.forEach(function(card){
+            setTicketState(card, "เหลือ 0 ใบ", false);
+        });
+        closeDetail("ตั๋วคงเหลือ 0 ใบ");
+        appendLog("[signal] targeted inventory drain detected across " + targetIds.length + " event(s)", "log-warn");
+    }
+    if(stage === 2){
+        targetCards.forEach(function(card){
+            const href = card.getAttribute("href") || "";
+            const targetIndex = Math.max(0, targetIds.findIndex(function(id){ return href.includes("id=" + id); }));
+            setTicketState(card, "ขายเกิน " + (18 + (targetIndex * 7)) + " ใบ", true);
+        });
+        closeDetail("ขายเกินจำนวน / ปิดการซื้อ");
+        appendLog("[signal] targeted event inventory reached negative stock", "log-warn");
+    }
+    if(stage === 3){
+        targetCards.forEach(function(card){
+            const href = card.getAttribute("href") || "";
+            const targetIndex = Math.max(0, targetIds.findIndex(function(id){ return href.includes("id=" + id); }));
+            setTicketState(card, "inventory ถูกดึงออก / -" + (24 + (targetIndex * 9)), true);
+        });
+        closeDetail("inventory ของอีเวนต์ไม่พร้อมจำหน่าย");
+        appendLog("[breach] targeted inventory ledger exhausted", "log-warn");
+    }
+}
+
+function applyTicketRapidStage(doc, stage){
+    injectTargetStyle(doc);
+    if(stage === 1){
+        challengeOverlay("<strong>Purchase monitor</strong> มีคำขอซื้อถี่กว่าปกติจากหลาย session", "");
+        appendLog("[signal] purchase requests rising above human pattern", "log-warn");
+    }
+    if(stage === 2){
+        const eventCards = doc.querySelectorAll(".event-card, .event-body");
+        eventCards.forEach(function(card, index){
+            if(index < 4){
+                card.classList.add("challenge-drift");
+                const badge = doc.createElement("span");
+                badge.className = "challenge-badge";
+                badge.textContent = "ขายหมด";
+                card.appendChild(badge);
+            }
+        });
+        challengeOverlay("<strong>Purchase pressure</strong> อีเว้นท์ยอดนิยมเริ่มหมดเร็วผิดปกติจาก session ที่ยืนยันตัวตนไม่ครบ", "alert");
+        appendLog("[signal] normal buyers losing purchase window", "log-warn");
+    }
+    if(stage === 3){
+        challengeOverlay("<strong>Buyout pressure</strong> คิวซื้อถูกเร่งจนผู้ใช้ทั่วไปเข้าถึงตั๋วยากขึ้น", "alert");
+        appendLog("[breach] rapid purchase pattern still active", "log-warn");
+    }
+}
+
+function applyScenarioStage(stage){
+    if(!challengeState.scenario){
+        return;
+    }
+    challengeState.stage = Math.max(challengeState.stage, stage);
+    updateDataMapForStage(stage);
+    const id = challengeState.scenario.id;
+    postToTarget({
+        type:"challenge:stage",
+        scenario:id,
+        stage:stage,
+        targets:challengeState.attackTargets.map(function(target){ return target.id; })
+    });
+    appendLog("[bridge] incident stage " + stage + " dispatched", stage >= 2 ? "log-warn" : "");
+
+    if(challengeState.bridgeReady){
+        return;
+    }
+
+    const doc = getTargetDocument();
+    if(!doc){
+        appendLog("[bridge] waiting for target channel", "log-warn");
+        return;
+    }
+    if(id === "news-content-drift"){
+        applyNewsContentStage(doc, stage);
+    }else if(id === "news-homepage-drift"){
+        applyNewsHomepageStage(doc, stage);
+    }else if(id === "shop-data-leak"){
+        applyShopLeakStage(doc, stage);
+    }else if(id === "shop-order-anomaly"){
+        applyShopOrderStage(doc, stage);
+    }else if(id === "ticket-oversell"){
+        applyTicketOversellStage(doc, stage);
+    }else if(id === "ticket-rapid-buyout"){
+        applyTicketRapidStage(doc, stage);
+    }
+}
+
+function setupChallengePanels(){
+    setPanel(missionConsole, [
+        "ระบบป้องกันพื้นฐานยังทำงานอยู่ แต่พบช่องสัญญาณผิดปกติหลัง target online",
+        "ยังไม่เปิดเผยรูปแบบโจมตี ต้อง scan และสังเกตอาการในเว็บไซต์"
+    ].join("<br>"));
+
+    setPanel(defenseToolkit, `
+        <div class="toolkit-list">
+            <details class="toolkit-group" open>
+                <summary>Core</summary>
+                <div class="toolkit-group-body">
+                    <code class="toolkit-line">sentinel scan --surface current <span>/ อ่านร่องรอยจากหน้าเว็บปัจจุบัน</span></code>
+                    <code class="toolkit-line">sentinel restore --clean <span>/ กู้คืนหลังควบคุมเส้นทางได้แล้ว</span></code>
+                </div>
+            </details>
+            <details class="toolkit-group">
+                <summary>Data Map</summary>
+                <div class="toolkit-group-body">
+                    <code class="toolkit-line">sentinel map --open <span>/ เปิดจอแผนผังข้อมูลภายใน</span></code>
+                    <code class="toolkit-line">sentinel map --back <span>/ ย้อนจากหน้า data view กลับแผนผัง</span></code>
+                    <code class="toolkit-line">sentinel map --focus content <span>/ โฟกัส publish/content ของเว็บข่าว</span></code>
+                    <code class="toolkit-line">sentinel map --focus customer <span>/ เปิด customer profile data stream</span></code>
+                    <code class="toolkit-line">sentinel map --focus checkout <span>/ โฟกัสลำดับตะกร้า/คำสั่งซื้อ</span></code>
+                    <code class="toolkit-line">sentinel map --focus inventory <span>/ โฟกัส restock และ ticket ledger</span></code>
+                    <code class="toolkit-line">sentinel map --focus identity <span>/ เปิด bot/session activity stream</span></code>
+                </div>
+            </details>
+            <details class="toolkit-group">
+                <summary>Controls</summary>
+                <div class="toolkit-group-body">
+                    <code class="toolkit-line">sentinel contain --scope content <span>/ จำกัดการแก้เนื้อหา</span></code>
+                    <code class="toolkit-line">sentinel contain --scope data <span>/ ปิดทางข้อมูลลูกค้ารั่ว</span></code>
+                    <code class="toolkit-line">sentinel contain --scope checkout <span>/ กั้นลำดับคำสั่งซื้อผิดปกติ</span></code>
+                    <code class="toolkit-line">sentinel verify --source baseline <span>/ เทียบกับข้อมูลตั้งต้น</span></code>
+                    <code class="toolkit-line">sentinel verify --source server-price <span>/ ยืนยันราคาจากฝั่งระบบ</span></code>
+                    <code class="toolkit-line">sentinel sync --inventory <span>/ ซิงก์จำนวนตั๋วกับรายการจริง</span></code>
+                    <code class="toolkit-line">sentinel identity --step-up <span>/ เพิ่มการยืนยันตัวตน</span></code>
+                    <code class="toolkit-line">sentinel confirm --state stable <span>/ ตรวจผลหลังป้องกันและอนุญาตการกู้คืน</span></code>
+                </div>
+            </details>
+        </div>
+    `);
+
+    setPanel(challengeConsole, `
+        <div class="console-form">
+            <textarea class="console-input" id="challengeCommandInput" spellcheck="false" placeholder="พิมพ์คำสั่งป้องกัน เช่น sentinel scan --surface current"></textarea>
+            <button class="console-run" id="challengeCommandRun" type="button">RUN COMMAND</button>
+        </div>
+    `);
+
+    document.getElementById("challengeCommandRun").addEventListener("click", runChallengeCommand);
+    document.getElementById("challengeCommandInput").addEventListener("keydown", function(event){
+        if(event.key === "Enter" && (event.ctrlKey || event.metaKey)){
+            runChallengeCommand();
+        }
+    });
+}
+
+function startScenarioTimeline(){
+    if(challengeState.timelineStarted){
+        return;
+    }
+    challengeState.timelineStarted = true;
+    clearChallengeTimers();
+    challengeState.recovered = false;
+    challengeState.stage = 0;
+    challengeState.defenseProgress = 0;
+    challengeState.scanCompleted = false;
+    challengeState.evidenceViewed = [];
+    challengeState.commandHistory = [];
+    challengeState.controlHistory = [];
+    challengeState.postValidationComplete = false;
+    challengeState.validationPending = false;
+    setupChallengePanels();
+    startChallengeTimer();
+    appendLog("[baseline] protection layer active but not fully trusted", "log-warn");
+    appendLog("[randomizer] attack profile withheld from console");
+
+    scheduleChallenge(2600, function(){
+        applyScenarioStage(1);
+    });
+    scheduleChallenge(7200, function(){
+        applyScenarioStage(2);
+    });
+    scheduleChallenge(12800, function(){
+        applyScenarioStage(3);
+    });
+}
+
+function scenarioNeeds(command){
+    const scenario = challengeState.scenario;
+    if(!scenario){
+        return false;
+    }
+    return scenario.defense.includes(command);
+}
+
+const scenarioEvidenceFocus = {
+    "news-content-drift":"content",
+    "news-homepage-drift":"content",
+    "shop-data-leak":"customer",
+    "shop-order-anomaly":"checkout",
+    "ticket-oversell":"inventory",
+    "ticket-rapid-buyout":"identity"
+};
+
+const scenarioReportProfiles = {
+    "news-content-drift":{
+        target:"เว็บไซต์ข่าวสาร",
+        incident:"เนื้อหาข่าวผิดปกติ",
+        impact:"ข้อความในบทความถูกเปลี่ยนน้ำเสียงและออกนอก editorial baseline ทำให้ผู้อ่านได้รับข้อมูลที่ไม่น่าเชื่อถือ",
+        evidence:"surface ของบทความสัมพันธ์กับ content/publish path และสำเนา baseline",
+        objective:"จำกัดสิทธิ์แก้ไขเนื้อหา ตรวจเทียบต้นฉบับที่อนุมัติ แล้วจึงกู้คืนฉบับสะอาด",
+        followUp:"ตรวจบัญชีผู้เผยแพร่, publish queue และ cache ที่อาจยังเก็บสำเนาถูกแก้ไข"
+    },
+    "news-homepage-drift":{
+        target:"เว็บไซต์ข่าวสาร",
+        incident:"หน้าแรกถูกเปลี่ยนเนื้อหา",
+        impact:"hero, ข่าวด่วน หรือโมดูลหน้าแรกหลายตำแหน่งเปลี่ยนพร้อมกัน กระทบการรับรู้ของผู้เข้าชมวงกว้าง",
+        evidence:"surface หน้าแรกสัมพันธ์กับ content module และเส้นทาง publish/cache",
+        objective:"หยุดการเขียนโมดูลหน้าแรก เทียบ baseline และคืนค่าหน้าเผยแพร่ที่ถูกต้อง",
+        followUp:"ล้าง edge cache และตรวจประวัติการเผยแพร่ของโมดูลหน้าแรกทุกตำแหน่ง"
+    },
+    "shop-data-leak":{
+        target:"เว็บไซต์ขายสินค้า",
+        incident:"ข้อมูลลูกค้ารั่วไหล",
+        impact:"ข้อมูลบัญชี session และส่วนของประวัติคำสั่งซื้อถูกอ่านผ่านเส้นทางที่ไม่ใช่หน้าบัญชีลูกค้า",
+        evidence:"customer profile stream สัมพันธ์กับ auth boundary และ audit read ที่ผิดปกติ",
+        objective:"จำกัดการเข้าออกข้อมูลลูกค้าและยืนยันข้อมูลสำคัญจากแหล่งฝั่งระบบก่อนกู้คืน",
+        followUp:"เพิกถอน session ที่เกี่ยวข้อง หมุน token และตรวจ audit log ของข้อมูลลูกค้าย้อนหลัง"
+    },
+    "shop-order-anomaly":{
+        target:"เว็บไซต์ขายสินค้า",
+        incident:"คำสั่งซื้อและราคาผิดปกติ",
+        impact:"สถานะคำสั่งซื้อเปลี่ยนก่อนตรวจราคาฝั่งระบบ ทำให้ขั้นตอน checkout และยอดชำระไม่น่าเชื่อถือ",
+        evidence:"checkout/order path แสดง state transition ที่มาก่อน server-price verification",
+        objective:"ยืนยันราคาจากฝั่งข้อมูล กั้นเส้นทาง checkout ที่ข้ามลำดับ แล้วจึงกู้คืนสถานะคำสั่งซื้อ",
+        followUp:"ตรวจรายการที่อนุมัติในช่วงเหตุการณ์และ replay ขั้นตอน checkout ด้วยราคาจาก server"
+    },
+    "ticket-oversell":{
+        target:"เว็บไซต์ขายตั๋ว",
+        incident:"ตั๋วขายเกินจำนวน",
+        impact:"inventory ของอีเวนต์เป้าหมายถูกดึงจนต่ำกว่าศูนย์ ขณะที่รายการอื่นยังทำงานตามปกติ",
+        evidence:"จำนวนใน event listing, reserve pool และ inventory ledger ของเป้าหมายไม่สัมพันธ์กัน",
+        objective:"ซิงก์จำนวนตั๋วเฉพาะเป้าหมาย ตรวจ baseline ของ ledger และปิด write path ที่ดูด inventory",
+        followUp:"กระทบยอดตั๋วที่ขายเกินกับผู้ถือบัตรและตรวจ reserve allocation ของอีเวนต์เป้าหมาย"
+    },
+    "ticket-rapid-buyout":{
+        target:"เว็บไซต์ขายตั๋ว",
+        incident:"ตั๋วหมดเร็วจากคำสั่งซื้ออัตโนมัติ",
+        impact:"session จำนวนมากส่งคำขอซื้อถี่เกินมนุษย์ ทำให้ผู้ใช้ทั่วไปเสียโอกาสและ inventory เติมใหม่ถูกกว้านทันที",
+        evidence:"identity/queue stream แสดง bot session, request rate และจำนวนซื้อต่อบัญชีผิดปกติ",
+        objective:"ยกระดับการยืนยันตัวตน จำกัดการซื้อ และซิงก์ inventory หลังแรงซื้อผิดปกติถูกควบคุม",
+        followUp:"คง purchase limit, ทบทวนบัญชีที่ถูกแบน และติดตาม restock watcher ก่อนเปิดขายรอบใหม่"
+    }
+};
+
+function addEvidence(key){
+    if(!challengeState.evidenceViewed.includes(key)){
+        challengeState.evidenceViewed.push(key);
+    }
+}
+
+function evidenceReady(){
+    if(!challengeState.scenario){
+        return false;
+    }
+    const focus = scenarioEvidenceFocus[challengeState.scenario.id];
+    return challengeState.evidenceViewed.includes("surface") && challengeState.evidenceViewed.includes("map:" + focus);
+}
+
+function evidenceProgress(){
+    if(!challengeState.scenario){
+        return 0;
+    }
+    const focus = scenarioEvidenceFocus[challengeState.scenario.id];
+    return Number(challengeState.evidenceViewed.includes("surface")) + Number(challengeState.evidenceViewed.includes("map:" + focus));
+}
+
+function expectedDefenseCommand(){
+    if(!challengeState.scenario){
+        return null;
+    }
+    return challengeState.scenario.defense[challengeState.defenseProgress] || null;
+}
+
+function advanceDefenseProgress(command){
+    if(command !== expectedDefenseCommand()){
+        return false;
+    }
+    challengeState.defenseProgress += 1;
+    return true;
+}
+
+function knownChallengeCommands(){
+    const commands = [
+        "sentinel map --open",
+        "sentinel map --back",
+        "sentinel map --focus content",
+        "sentinel map --focus customer",
+        "sentinel map --focus checkout",
+        "sentinel map --focus inventory",
+        "sentinel map --focus identity"
+    ];
+    targetPool.forEach(function(target){
+        target.scenarios.forEach(function(scenario){
+            scenario.defense.forEach(function(command){ commands.push(command); });
+        });
+    });
+    return Array.from(new Set(commands));
+}
+
+function commandDistance(left, right){
+    const rows = Array.from({length:left.length + 1}, function(_, index){ return index; });
+    for(let rightIndex = 1; rightIndex <= right.length; rightIndex += 1){
+        let previous = rows[0];
+        rows[0] = rightIndex;
+        for(let leftIndex = 1; leftIndex <= left.length; leftIndex += 1){
+            const saved = rows[leftIndex];
+            const replace = previous + (left[leftIndex - 1] === right[rightIndex - 1] ? 0 : 1);
+            rows[leftIndex] = Math.min(rows[leftIndex] + 1, rows[leftIndex - 1] + 1, replace);
+            previous = saved;
+        }
+    }
+    return rows[left.length];
+}
+
+function nearestCommand(command){
+    return knownChallengeCommands().map(function(candidate){
+        return {command:candidate, distance:commandDistance(command, candidate)};
+    }).sort(function(left, right){ return left.distance - right.distance; })[0];
+}
+
+function markDefenseOnTarget(message){
+    postToTarget({type:"challenge:defense", message:message});
+    if(challengeState.bridgeReady){
+        return;
+    }
+    recordDataEvent("Defense response", message, "watch");
+}
+
+function restoreTargetClean(){
+    clearChallengeTimers();
+    challengeState.recovered = true;
+    postToTarget({type:"challenge:reset"});
+    const frame = document.querySelector(".target-frame");
+    if(frame){
+        frame.src = challengeState.target.url;
+        frame.addEventListener("load", function onReload(){
+            frame.removeEventListener("load", onReload);
+            updateTargetViewport();
+            markDefenseOnTarget("กู้คืน baseline สำเร็จ สถานการณ์ถูกแยกออกจากหน้าเว็บแล้ว");
+        });
+    }
+    setPanel(missionConsole, "ควบคุมเส้นทางโจมตีแล้ว<br>หน้าเว็บถูกกู้คืนเป็น baseline สะอาดสำหรับรอบนี้");
+    updateDataMap([], "idle", "clean baseline restored / internal map returned to normal watch");
+    appendLog("[restore] clean baseline reloaded", "log-ok");
+    completeChallenge("restored");
+}
+
+function runChallengeCommand(){
+    const input = document.getElementById("challengeCommandInput");
+    if(!input || !challengeState.scenario || challengeState.recovered || challengeState.completed){
+        return;
+    }
+    if(challengeState.repair.active){
+        appendLog("[console] signal repair required before command input", "log-warn");
+        return;
+    }
+    if(challengeState.validationPending){
+        appendLog("[confirm] post-defense validation is still running", "log-warn");
+        return;
+    }
+    const command = input.value.trim().replace(/\s+/g, " ");
+    if(!command){
+        appendLog("[console] empty command ignored", "log-warn");
+        return;
+    }
+    challengeState.stats.commands += 1;
+    challengeState.commandHistory.push(command);
+    appendLog("> " + command);
+    input.value = "";
+
+    if(command === "sentinel scan --surface current"){
+        if(challengeState.stage < 1){
+            setPanel(missionConsole, "scan result: ยังไม่พบหลักฐานที่ยืนยัน incident path<br>ระบบยังอยู่ใน baseline watch");
+            appendLog("[scan] no actionable evidence; progress not recorded", "log-warn");
+            return;
+        }
+        const scanRecorded = advanceDefenseProgress(command);
+        challengeState.scanCompleted = true;
+        addEvidence("surface");
+        setPanel(missionConsole, [
+            "scan result: พบความผิดปกติที่สัมพันธ์กับ target surface",
+            "clue: " + escapeHtml(challengeState.scenario.clue),
+            "ระบบป้องกันเดิมยังอยู่ แต่มี request บางส่วนผ่านขอบเขตที่ควบคุมไว้"
+        ].join("<br>"));
+        markDefenseOnTarget("กำลัง scan ร่องรอยโดยไม่ปิดหน้าเว็บ ผู้ใช้ยังต้องสังเกตจุดเปลี่ยนแปลงเอง");
+        setDataConsoleOpen(true);
+        renderDataMap();
+        appendLog(scanRecorded ? "[evidence 1/2] surface symptom collected; inspect DATA LINK next" : "[scan] evidence refreshed; scan step already recorded", "log-ok");
+        return;
+    }
+
+    if(command === "sentinel map --open"){
+        closeDataDetail();
+        setDataConsoleOpen(true);
+        renderDataMap();
+        challengeState.stats.mapViews += 1;
+        appendLog("[map] data link console opened", "log-ok");
+        return;
+    }
+
+    if(command === "sentinel map --back"){
+        closeDataDetail();
+        setDataConsoleOpen(true);
+        renderDataMap();
+        challengeState.stats.mapViews += 1;
+        appendLog("[map] returned to internal graph", "log-ok");
+        return;
+    }
+
+    if(command.startsWith("sentinel map --focus ")){
+        focusDataMap(command.replace("sentinel map --focus ", "").trim());
+        return;
+    }
+
+    if(command.startsWith("sentinel map")){
+        appendLog("[map] command not found", "log-warn");
+        dataMapStatus.textContent = "NOT FOUND";
+        return;
+    }
+
+    if(command === "sentinel confirm --state stable"){
+        if(challengeState.postValidationComplete){
+            appendLog("[confirm] state already validated / restore authorized", "log-ok");
+            return;
+        }
+        if(!evidenceReady() || command !== expectedDefenseCommand()){
+            const controlsDone = challengeState.stats.matchedControls;
+            setPanel(missionConsole, "STATE STILL UNSTABLE<br>ยังมี prerequisite control หรือ evidence ที่ตรวจไม่ครบ<br>controls validated: " + controlsDone);
+            appendLog("[confirm] state unstable; validation made no changes", "log-warn");
+            recordDataEvent("Post-defense check", "active or unverified path remains; restore not authorized", "watch");
+            return;
+        }
+
+        challengeState.validationPending = true;
+        clearChallengeTimers();
+        setDataConsoleOpen(true);
+        dataMapStatus.textContent = "VALIDATING";
+        dataMapTrace.textContent = "checking active write paths and comparing protected state";
+        setPanel(missionConsole, "POST-DEFENSE VALIDATION<br>กำลังตรวจเส้นทางข้อมูลหลังใช้ control...<br>ห้าม restore ระหว่างการตรวจสอบ");
+        appendLog("[confirm 1/3] active write path scan started", "log-ok");
+
+        scheduleChallenge(700, function(){
+            dataMapStatus.textContent = "REPLAY CHECK";
+            dataMapTrace.textContent = "replaying safe read against baseline and protected data path";
+            appendLog("[confirm 2/3] baseline replay and state comparison", "log-ok");
+        });
+        scheduleChallenge(1700, function(){
+            challengeState.validationPending = false;
+            challengeState.postValidationComplete = true;
+            advanceDefenseProgress(command);
+            challengeState.stats.matchedControls += 1;
+            challengeState.controlHistory.push(command);
+            stopDataStream();
+            updateDataMap([], "idle", "post-defense state stable / no active anomaly writes detected");
+            dataMapStatus.textContent = "STABLE";
+            setPanel(missionConsole, "STABLE / RESTORE AUTHORIZED<br>ไม่พบการเปลี่ยนแปลงผิดปกติต่อเนื่องหลังป้องกัน<br>สามารถกู้คืน clean baseline ได้");
+            markDefenseOnTarget("การตรวจหลังป้องกันเสร็จสมบูรณ์ ไม่พบเส้นทางโจมตีที่ยังเขียนข้อมูลต่อเนื่อง");
+            appendLog("[confirm 3/3] stable state confirmed; restore authorized", "log-ok");
+        });
+        return;
+    }
+
+    if(command === "sentinel restore --clean"){
+        const restoreIndex = challengeState.scenario.defense.length - 1;
+        const requiredControlCount = Math.max(0, challengeState.scenario.defense.length - 2);
+        const restoreReady = evidenceReady() && challengeState.postValidationComplete && challengeState.stats.matchedControls >= requiredControlCount;
+        if(challengeState.stage < 1){
+            appendLog("[restore] denied: no visible evidence collected", "log-warn");
+            recordDataEvent("Restore violation", "clean restore requested before incident evidence was collected", "alert");
+            challengeOverlay("<strong>Restore sequence violation</strong> ไม่พบหลักฐานและขั้นตอนควบคุมที่อนุญาตให้กู้คืน สัญญาณ monitor หลุด", "alert");
+            triggerSignalRepair(command);
+            return;
+        }
+        if(!restoreReady){
+            const completed = (challengeState.scanCompleted ? 1 : 0) + challengeState.stats.matchedControls;
+            setPanel(missionConsole, "RESTORE GATE DENIED<br>containment และ verification ยังไม่ครบขั้นตอน<br>validated steps: " + completed + "/" + restoreIndex);
+            appendLog("[restore] denied: prerequisite controls incomplete (" + completed + "/" + restoreIndex + ")", "log-warn");
+            recordDataEvent("Restore gate", "clean restore rejected because prerequisite controls are incomplete", "alert");
+            challengeOverlay("<strong>Restore sequence violation</strong> มีการข้าม prerequisite control สัญญาณ monitor ต้องเชื่อมใหม่", "alert");
+            triggerSignalRepair(command);
+            return;
+        }
+        if(expectedDefenseCommand() === command){
+            advanceDefenseProgress(command);
+        }
+        appendLog("[restore] prerequisite checklist validated (" + restoreIndex + "/" + restoreIndex + ")", "log-ok");
+        restoreTargetClean();
+        return;
+    }
+
+    if(scenarioNeeds(command)){
+        if(!evidenceReady()){
+            const progress = evidenceProgress();
+            setPanel(missionConsole, "CONTROL GATE WAITING<br>หลักฐานยังไม่เชื่อม surface กับ DATA LINK<br>evidence: " + progress + "/2");
+            appendLog("[defense] control held: evidence checkpoint incomplete (" + progress + "/2)", "log-warn");
+            return;
+        }
+        if(command !== expectedDefenseCommand()){
+            appendLog("[defense] sequence rejected: prerequisite step incomplete", "log-warn");
+            recordDataEvent("Control sequence", "valid control received out of order; no state change committed", "watch");
+            return;
+        }
+        advanceDefenseProgress(command);
+        markDefenseOnTarget("คำสั่งป้องกันสัมพันธ์กับร่องรอยที่พบ ระบบเริ่มลดผลกระทบและล็อกเส้นทางที่ผิดปกติ");
+        challengeState.stats.matchedControls += 1;
+        challengeState.controlHistory.push(command);
+        appendLog("[defense] matched control: " + command, "log-ok");
+        appendLog("[defense] validated steps: " + (1 + challengeState.stats.matchedControls) + "/" + (challengeState.scenario.defense.length - 1), "log-ok");
+        if(challengeState.stage >= 2){
+            const doc = getTargetDocument();
+            if(doc){
+                doc.querySelectorAll(".challenge-drift").forEach(function(node){
+                    node.classList.remove("challenge-drift");
+                    node.classList.add("challenge-restored");
+                });
+            }
+        }
+        return;
+    }
+
+    const knownCommands = knownChallengeCommands();
+    if(!knownCommands.includes(command)){
+        const nearest = nearestCommand(command);
+        if(nearest && nearest.distance <= 5){
+            appendLog("[syntax] command not found; possible match: " + nearest.command, "log-warn");
+            setPanel(missionConsole, "SYNTAX CHECK<br>ไม่พบคำสั่งนี้ใน Toolkit<br>possible match: " + escapeHtml(nearest.command));
+            return;
+        }
+    }
+
+    appendLog("[defense] command mismatch; monitor signal destabilized", "log-warn");
+    challengeOverlay("<strong>Defense mismatch</strong> คำสั่งนี้ไม่ตรงกับ incident path สัญญาณ monitor หลุดชั่วคราว", "alert");
+    triggerSignalRepair(command);
+}
+
+function updateTargetViewport(){
+    const viewport = document.querySelector(".target-frame-viewport");
+    const frame = document.querySelector(".target-frame");
+    const wrap = document.querySelector(".target-frame-wrap");
+
+    if(!viewport || !frame || !wrap){
+        return;
+    }
+
+    const wrapRect = wrap.getBoundingClientRect();
+    const feedRect = feedGrid.getBoundingClientRect();
+    const width = Math.max(wrapRect.width, feedRect.width, 760);
+    const height = Math.max(wrapRect.height, feedRect.height, 520);
+    const scale = Math.min(1, Math.max(.5, width / TARGET_VIEWPORT_WIDTH));
+    const virtualHeight = Math.max(720, Math.ceil(height / scale));
+
+    viewport.style.setProperty("--target-scale", scale.toFixed(4));
+    viewport.style.width = TARGET_VIEWPORT_WIDTH + "px";
+    viewport.style.height = virtualHeight + "px";
+    frame.style.width = TARGET_VIEWPORT_WIDTH + "px";
+    frame.style.height = virtualHeight + "px";
+}
+
+paperNote.addEventListener("click", function(){
+    setPaperOpen(!paperNote.classList.contains("open"));
+});
+
+sheetTabs.forEach(function(tab){
+    tab.addEventListener("click", function(event){
+        event.stopPropagation();
+        setPaperOpen(true);
+        const sheet = tab.dataset.sheet;
+        sheetTabs.forEach(function(item){
+            item.classList.toggle("active", item === tab);
+        });
+        manualSheets.forEach(function(item){
+            item.classList.toggle("active", item.dataset.sheet === sheet);
+        });
+    });
+});
+
+document.addEventListener("keydown", function(event){
+    if(event.key === "Escape"){
+        setPaperOpen(false);
+    }
+});
+
+dataConsoleToggle.addEventListener("click", function(){
+    setDataConsoleOpen(!dataConsole.classList.contains("open"));
+});
+
+function beginSignalSearch(){
+    signalCard.classList.add("acquiring");
+    systemReadout.textContent = "SECURITY MONITOR / SEARCHING SIGNAL";
+    feedStatus.textContent = "SCANNING...";
+    signalTitle.textContent = "SIGNAL TRACE";
+    signalMessage.textContent = "กำลังค้นหาช่องสัญญาณของภารกิจ ระบบยังไม่เปิดเป้าหมายจริง";
+}
+
+function showTargetRandomizing(){
+    feedGrid.classList.remove("target-live");
+    feedGrid.innerHTML = `
+        <div class="offline-card acquiring">
+            <h2>RANDOMIZING</h2>
+            <p>รอระบบสุ่มเป้าหมาย กำลังตรวจช่องสัญญาณที่พร้อมใช้สำหรับภารกิจ</p>
+            <div class="signal-bars" aria-hidden="true">
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    `;
+}
+
+function renderRandomTarget(target){
+    clearChallengeTimers();
+    stopChallengeTimer();
+    challengeState.target = target;
+    challengeState.scenario = target.scenarios[Math.floor(Math.random() * target.scenarios.length)];
+    challengeState.attackTargets = challengeState.scenario.id === "ticket-oversell"
+        ? shuffleList(ticketInventoryTargets).slice(0, 1 + Math.floor(Math.random() * 3))
+        : [];
+    challengeState.stage = 0;
+    challengeState.recovered = false;
+    challengeState.completed = false;
+    challengeState.summaryShown = false;
+    challengeState.timeRemaining = CHALLENGE_TIME_LIMIT;
+    challengeState.timelineStarted = false;
+    challengeState.bridgeReady = false;
+    challengeState.defenseProgress = 0;
+    challengeState.scanCompleted = false;
+    challengeState.evidenceViewed = [];
+    challengeState.commandHistory = [];
+    challengeState.controlHistory = [];
+    challengeState.postValidationComplete = false;
+    challengeState.validationPending = false;
+    challengeState.stats = {
+        commands:0,
+        mistakes:0,
+        repairs:0,
+        matchedControls:0,
+        mapViews:0
+    };
+    challengeState.repair = {
+        active:false,
+        cables:[],
+        connected:0,
+        drag:null
+    };
+    challengeState.dataMap = {
+        focus:[],
+        level:"idle",
+        trace:"target online / data map waiting for scan"
+    };
+    challengeState.log = [];
+    summaryModal.classList.remove("open");
+    signalRepair.classList.remove("active");
+    signalRepair.setAttribute("aria-hidden", "true");
+    signalRepair.innerHTML = "";
+    updateTimerDisplay();
+    feedGrid.classList.add("target-live");
+    feedGrid.innerHTML = `
+        <div class="target-frame-wrap">
+            <div class="target-frame-viewport">
+                <iframe class="target-frame" src="${target.url}" title="${target.title}"></iframe>
+            </div>
+            <div class="target-status-strip">${target.code} / live feed</div>
+        </div>
+    `;
+    updateTargetViewport();
+    window.requestAnimationFrame(updateTargetViewport);
+    window.setTimeout(updateTargetViewport, 80);
+    window.setTimeout(updateTargetViewport, 280);
+    systemReadout.textContent = "CHALLENGE SYSTEM / TARGET ONLINE";
+    feedStatus.textContent = "LIVE";
+    writeLog([
+        "[boot] challenge briefing accepted",
+        "[randomizer] target slot selected",
+        "[monitor] live feed attached"
+    ]);
+    renderDataMap();
+    const frame = document.querySelector(".target-frame");
+    frame.addEventListener("load", function(){
+        updateTargetViewport();
+        if(!challengeState.timelineStarted){
+            startScenarioTimeline();
+        }else{
+            window.setTimeout(syncTargetBridge, 120);
+        }
+    });
+    window.setTimeout(function(){
+        if(!challengeState.timelineStarted && !challengeState.recovered){
+            startScenarioTimeline();
+        }
+    }, 900);
+}
+
+window.addEventListener("resize", updateTargetViewport);
+
+function startTargetRandomizer(){
+    showTargetRandomizing();
+    systemReadout.textContent = "CHALLENGE SYSTEM / RANDOMIZING TARGET";
+    feedStatus.textContent = "RANDOM";
+    writeLog([
+        "[input] start challenge",
+        "[randomizer] scanning available target surfaces",
+        "[randomizer] waiting for signal lock"
+    ]);
+
+    window.setTimeout(function(){
+        const target = targetPool[Math.floor(Math.random() * targetPool.length)];
+        renderRandomTarget(target);
+    }, 2200);
+}
+
+function showChallengeBrief(){
+    signalCard.classList.remove("acquiring");
+    signalCard.classList.add("signal-found");
+    systemReadout.textContent = "SECURITY MONITOR / SIGNAL ACQUIRED";
+    feedStatus.textContent = "SIGNAL LOCKED";
+    signalCard.innerHTML = `
+        <div class="challenge-brief">
+            <div class="brief-kicker">
+                <span>challenge briefing loaded</span>
+                <span class="role-chip">role: defense only</span>
+            </div>
+            <h2>ภารกิจท้าทายพร้อมเริ่ม</h2>
+            <p class="brief-text">ระบบนี้จะสุ่มเว็บไซต์จาก 3 ห้องจำลอง และซ่อนรูปแบบการโจมตีไว้ให้สังเกตจากอาการในเว็บกับจอเบื้องหลัง ผู้ใช้รับบทเป็นฝ่ายป้องกันเท่านั้น ต้องวิเคราะห์ก่อนเลือกแนวทางแก้ไข</p>
+            <div class="brief-grid">
+                <div class="brief-item">
+                    <strong>Rules</strong>
+                    <p>เริ่มจากไม่รู้เป้าหมายจริง ต้องสังเกตความผิดปกติเอง หากแก้ผิดสถานการณ์ อาการอีกแบบอาจเกิดเพิ่มและทำให้ยุ่งยากขึ้น</p>
+                </div>
+                <div class="brief-item">
+                    <strong>How to Play</strong>
+                    <p>อ่านคู่มือกระดาษด้านซ้ายเพื่อดูแนวคิด แล้วหาแนวคำสั่งจาก Defense Toolkit เมื่อระบบส่วนนี้ถูกเติมในขั้นถัดไป</p>
+                </div>
+                <div class="brief-item">
+                    <strong>Role</strong>
+                    <p>คุณคือผู้ดูแลระบบหลังบ้าน ไม่มีเครื่องมือโจมตี มีเพียงการตรวจสอบ จำกัดความเสียหาย และกู้คืนให้ถูกจุด</p>
+                </div>
+            </div>
+            <div class="brief-warning">หมายเหตุ: หลังจากกดเริ่ม ระบบจะสุ่มเว็บไซต์เป้าหมายขึ้นจอมอนิเตอร์ก่อน ส่วนคำสั่งและสถานการณ์โจมตีจริงจะถูกเติมในขั้นถัดไป</div>
+            <button class="start-challenge-button" id="startChallengeButton" type="button">เริ่มการท้าทาย</button>
+        </div>
+    `;
+
+    document.getElementById("startChallengeButton").addEventListener("click", function(){
+        this.textContent = "รอระบบสุ่มเป้าหมาย";
+        this.disabled = true;
+        startTargetRandomizer();
+    });
+}
+
+window.setTimeout(beginSignalSearch, 1200);
+window.setTimeout(showChallengeBrief, 3200);
+</script>
+</body>
+</html>

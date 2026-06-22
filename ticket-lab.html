@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ticket Simulation</title>
+<style>
+body{margin:0;font-family:Arial,sans-serif;background:#f2f2f2;color:#222}
+.navbar{background:#222}
+.navbar a{color:white;padding:14px 20px;display:inline-block;text-decoration:none}
+.navbar a:hover{background:#444}
+.header{text-align:center;padding:15px;font-size:20px;border-bottom:1px solid #aaa;background:white}
+.lab-container{display:flex;height:calc(100vh - 100px)}
+.lab-left{flex:2;border-right:1px solid #aaa;background:#e6e6e6}
+.lab-left iframe{width:100%;height:100%;border:none;background:white}
+.lab-right{flex:1;padding:22px;background:#f9f9f9;overflow:auto;box-sizing:border-box}
+.panel{background:white;border:1px solid #bbb;margin-bottom:16px}
+.panel h3{margin:0;padding:10px 12px;border-bottom:1px solid #bbb;background:#ededed;font-size:15px}
+.panel-body{padding:12px;line-height:1.6;font-size:14px}
+.badge-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.badge{border:1px solid #aaa;background:#f6f6f6;padding:6px 8px;font-size:12px}
+label{display:block;margin:12px 0 6px;font-size:13px;font-weight:bold}
+select,textarea,input{width:100%;box-sizing:border-box;border:1px solid #aaa;font:inherit;background:white}
+select,input{padding:9px}
+textarea{min-height:116px;padding:10px;resize:vertical;font-family:Consolas,"Courier New",monospace;font-size:13px;background:#111;color:#e8e8e8}
+.command-help{font-family:Consolas,"Courier New",monospace;font-size:12px;line-height:1.55;background:#f3f3f3;border:1px solid #ddd;padding:10px}
+.command-help code{display:block;margin:4px 0;color:#111;cursor:pointer}
+.command-help code:hover{text-decoration:underline}
+.command-help .command-note{margin:2px 0 9px;color:#555;font-family:Arial,sans-serif;font-size:12px}
+.button-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+button{padding:11px 12px;border:1px solid #333;background:white;cursor:pointer;font-size:14px}
+button:hover{background:#e9e9e9}
+.primary{background:#222;color:white}
+.primary:hover{background:#444}
+.status-box{min-height:86px;line-height:1.55;font-size:14px}
+.status-box strong{display:block;margin-bottom:4px}
+.log-list{list-style:none;padding:0;margin:0}
+.log-list li{border-left:4px solid #777;background:#f5f5f5;margin-bottom:8px;padding:9px 10px;font-size:13px;line-height:1.45}
+.log-list li.attack{border-left-color:#c62828}
+.log-list li.defense{border-left-color:#2e7d32}
+.log-list li.error{border-left-color:#ef6c00}
+.log-list li.scan{border-left-color:#1565c0}
+.log-time{display:block;color:#666;font-size:12px;margin-bottom:3px}
+</style>
+<link rel="stylesheet" href="assets/site-shell.css">
+</head>
+<body>
+<header class="site-header">
+    <a class="brand" href="index.html" aria-label="Web Security Simulation Lab หน้าแรก"><span class="brand-mark" aria-hidden="true">WS</span><span class="brand-name">Web Security Simulation Lab</span></a>
+    <nav class="navbar" aria-label="เมนูหลัก"><a href="index.html">Home</a><a href="index.html#path-title">Security Fundamentals</a><a class="active" href="simulation.html" aria-current="page">Simulation</a><a href="index.html#project-title">About</a></nav>
+</header>
+
+<div class="header">การจำลองเว็บขายตั๋ว</div>
+
+<main class="lab-container">
+    <div class="lab-left">
+        <iframe id="ticketFrame" src="labs/ticket-site/index.html" title="เว็บขายตั๋วจำลอง"></iframe>
+    </div>
+
+    <aside class="lab-right">
+        <div class="panel">
+            <h3>Mission Console</h3>
+            <div class="panel-body">
+                <div class="badge-row">
+                    <span class="badge" id="roleBadge">Role: Attack</span>
+                    <span class="badge" id="stageBadge">Stage: Recon</span>
+                    <span class="badge">Target: Ticket Site</span>
+                </div>
+
+                <label for="roleSelect">ฝ่ายปฏิบัติการ</label>
+                <select id="roleSelect">
+                    <option value="attack">โจมตี (Attack Operator)</option>
+                    <option value="defense">ป้องกัน (Security Developer)</option>
+                </select>
+
+                <label for="scenarioSelect">ลักษณะการจำลอง</label>
+                <select id="scenarioSelect"></select>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h3>Command Reference</h3>
+            <div class="panel-body">
+                <div class="command-help" id="commandHelp"></div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h3>Command Input</h3>
+            <div class="panel-body">
+                <label for="commandInput">พิมพ์คำสั่ง</label>
+                <textarea id="commandInput" spellcheck="false">scan ticket --surface</textarea>
+
+                <label for="noteInput">Note / Evidence</label>
+                <input id="noteInput" value="ตรวจจากหน้าแรก หน้าซื้อตั๋ว login และ popup ชำระเงิน">
+
+                <div class="button-row">
+                    <button class="primary" id="runCommand" type="button">Run Command</button>
+                    <button id="clearLog" type="button">Clear Log</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h3>Situation Panel</h3>
+            <div class="panel-body status-box" id="statusBox">
+                <strong>ระบบพร้อมจำลอง</strong>
+                พื้นที่นี้เตรียมไว้สำหรับการจำลองเว็บขายตั๋ว เลือกฝ่ายและลักษณะการจำลอง จากนั้นใช้คำสั่งใน Command Reference เพื่อบันทึกสถานการณ์
+            </div>
+        </div>
+
+        <div class="panel">
+            <h3>Operation Log</h3>
+            <div class="panel-body">
+                <ul class="log-list" id="logList">
+                    <li>ยังไม่มีคำสั่งที่ถูกใช้งาน</li>
+                </ul>
+            </div>
+        </div>
+    </aside>
+</main>
+
+<script>
+const roleSelect = document.getElementById("roleSelect");
+const scenarioSelect = document.getElementById("scenarioSelect");
+const commandHelp = document.getElementById("commandHelp");
+const commandInput = document.getElementById("commandInput");
+const noteInput = document.getElementById("noteInput");
+const runCommand = document.getElementById("runCommand");
+const clearLog = document.getElementById("clearLog");
+const statusBox = document.getElementById("statusBox");
+const logList = document.getElementById("logList");
+const roleBadge = document.getElementById("roleBadge");
+const stageBadge = document.getElementById("stageBadge");
+const ticketFrame = document.getElementById("ticketFrame");
+let pendingFrameMessage = null;
+
+const scenarios = {
+    attack:[
+        {
+            id:"ticket-recon",
+            label:"สแกนระบบขายตั๋ว",
+            command:"scan ticket --surface",
+            effect:"scan-surface",
+            target:"labs/ticket-site/index.html",
+            title:"สแกนพื้นผิวเว็บขายตั๋ว",
+            body:"พบจุดสำคัญสำหรับจำลองคือหน้ารายการอีเว้นท์ หน้าซื้อ ปุ่มเลือกบัตร และ popup ชำระเงิน"
+        },
+        {
+            id:"lock-bypass",
+            label:"การข้ามการล็อกตั๋ว",
+            command:"attack ticket-lock --bypass --event neon",
+            effect:"attack-lock-bypass",
+            target:"labs/ticket-site/event.html?id=neon",
+            title:"จำลองการข้ามการล็อกตั๋ว",
+            body:"เว็บใน iframe จะแสดงอาการว่าหน้าซื้อข้ามชั้น ticket lock ก่อนยืนยันคำสั่งซื้อ ผู้ใช้ต้องสังเกตจากสถานะที่นั่งและปุ่มซื้อที่ผิดบริบท"
+        },
+        {
+            id:"bot-burst-buy",
+            label:"ซื้อตั๋วอัตโนมัติจำนวนมาก",
+            command:"attack bot --burst-buy --count 80",
+            effect:"attack-bot-burst",
+            target:"labs/ticket-site/index.html",
+            title:"จำลองการกวาดซื้อตั๋วระยะสั้น",
+            body:"เว็บใน iframe จะมีจอซ้อนแสดง bot request จำลอง และยอดบัตรที่เหลือลดลงอย่างรวดเร็ว เพื่อสื่อถึงการซื้อตั๋วอัตโนมัติจำนวนมากในช่วงเวลาสั้น"
+        }
+    ],
+    defense:[
+        {
+            id:"inventory-link",
+            label:"การเชื่อมต่อข้อมูลจำนวนตั๋ว",
+            command:"defense inventory --connect-source",
+            effect:"defense-inventory-connect",
+            target:"labs/ticket-site/index.html",
+            title:"เปิดการเชื่อมต่อข้อมูลจำนวนตั๋ว",
+            body:"เว็บใน iframe จะขึ้นจอซ้อนฝ่ายป้องกัน แสดงขั้นตอนเชื่อมต่อข้อมูลจำนวนบัตรหลัก เทียบกับหน้าขาย และตรวจยอดที่ลดเร็วผิดปกติ"
+        },
+        {
+            id:"purchase-control",
+            label:"การควบคุมการยืนยันการซื้อ",
+            command:"defense purchase --confirmation-control",
+            effect:"defense-purchase-control",
+            target:"labs/ticket-site/event.html?id=neon",
+            title:"เปิดการควบคุมการยืนยันการซื้อ",
+            body:"เว็บใน iframe จะขึ้นจอซ้อนฝ่ายป้องกัน แสดงการตรวจ ticket lock จำนวนบัตรต่อคำสั่งซื้อ และตัวตนผู้ซื้อก่อนออกบัตร"
+        },
+        {
+            id:"restore-ticket",
+            label:"กู้คืนสถานะเว็บขายตั๋ว",
+            command:"defense recovery --restore-ticket",
+            effect:"defense-restore-ticket",
+            target:"labs/ticket-site/index.html",
+            title:"กู้คืนผลจำลองทั้งหมด",
+            body:"เว็บใน iframe จะแสดงสรุปผลกระทบก่อนรีเซ็ต แล้วล้างอาการจำลองของการโจมตีและการป้องกันทั้งหมด"
+        }
+    ]
+};
+
+const commandReference = {
+    attack:[
+        { command:"scan ticket --surface", note:"สำรวจหน้า login หน้าอีเว้นท์ ปุ่มซื้อตั๋ว และ popup ชำระเงิน" },
+        { command:"attack ticket-lock --bypass --event neon", note:"จำลองการข้ามชั้นล็อกตั๋วก่อนยืนยันซื้อ" },
+        { command:"attack bot --burst-buy --count 80", note:"จำลองคำสั่งซื้ออัตโนมัติจำนวนมากในช่วงเวลาสั้น" }
+    ],
+    defense:[
+        { command:"defense inventory --connect-source", note:"เชื่อมต่อข้อมูลจำนวนตั๋วจากแหล่งหลักและเทียบกับหน้าขาย" },
+        { command:"defense purchase --confirmation-control", note:"บังคับตรวจ ticket lock จำนวนบัตร และตัวตนก่อนยืนยันซื้อ" },
+        { command:"defense recovery --restore-ticket", note:"สรุปผลกระทบแล้วรีเซ็ตอาการจำลองทั้งหมด" }
+    ]
+};
+
+function normalizeCommand(value){
+    return value.trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+function renderScenarios(preserveCommand){
+    const currentCommand = commandInput.value;
+    scenarioSelect.innerHTML = scenarios[roleSelect.value].map(function(item){
+        return '<option value="' + item.id + '">' + item.label + '</option>';
+    }).join("");
+    commandInput.value = preserveCommand ? currentCommand : scenarios[roleSelect.value][0].command;
+}
+
+function renderCommandReference(){
+    commandHelp.innerHTML = commandReference[roleSelect.value].map(function(item){
+        return "<code data-command=\"" + item.command + "\">" + item.command + "</code><div class=\"command-note\">" + item.note + "</div>";
+    }).join("");
+}
+
+function selectedScenario(){
+    return scenarios[roleSelect.value].find(function(item){
+        return item.id === scenarioSelect.value;
+    }) || scenarios[roleSelect.value][0];
+}
+
+function findScenarioByCommand(command){
+    for(const role of Object.keys(scenarios)){
+        const scenario = scenarios[role].find(function(item){
+            return item.command === command;
+        });
+        if(scenario) return { role:role, scenario:scenario };
+    }
+    return null;
+}
+
+function syncScenarioFromCommand(){
+    const match = findScenarioByCommand(normalizeCommand(commandInput.value));
+    if(!match) return;
+
+    if(roleSelect.value !== match.role){
+        roleSelect.value = match.role;
+        renderScenarios(true);
+        renderCommandReference();
+        updateBadges();
+    }
+
+    scenarioSelect.value = match.scenario.id;
+}
+
+function updateBadges(){
+    roleBadge.textContent = roleSelect.value === "attack" ? "Role: Attack" : "Role: Defense";
+    stageBadge.textContent = roleSelect.value === "attack" ? "Stage: Attack Preparation" : "Stage: Defense Preparation";
+}
+
+function runCurrentCommand(){
+    syncScenarioFromCommand();
+    const command = normalizeCommand(commandInput.value);
+    const scenario = selectedScenario();
+
+    if(command !== scenario.command){
+        reportStatus("คำสั่งไม่ตรงกับสถานการณ์", "ตรวจ Command Reference หรือเลือกสถานการณ์ให้ตรงกับคำสั่งที่ต้องการเตรียมจำลอง", "error");
+        return;
+    }
+
+    sendToTicketFrame(scenario);
+    reportStatus(scenario.title, scenario.body + "<br><strong>หลักฐาน/หมายเหตุ:</strong> " + escapeHtml(noteInput.value), roleSelect.value);
+}
+
+function sendToTicketFrame(scenario){
+    const message = {
+        source:"ticket-lab",
+        action:"ticket-sim",
+        effect:scenario.effect,
+        payload:{
+            scenario:scenario.id,
+            command:scenario.command,
+            note:noteInput.value
+        }
+    };
+
+    if(ticketFrame.getAttribute("src") !== scenario.target){
+        pendingFrameMessage = message;
+        ticketFrame.src = scenario.target;
+        return;
+    }
+
+    ticketFrame.contentWindow.postMessage(message, "*");
+}
+
+function reportStatus(title, body, type){
+    statusBox.innerHTML = "<strong>" + title + "</strong>" + body;
+    addLog(title, body, type);
+}
+
+function addLog(title, body, type){
+    if(logList.children.length === 1 && logList.children[0].textContent.includes("ยังไม่มี")){
+        logList.innerHTML = "";
+    }
+    const item = document.createElement("li");
+    item.className = type || "";
+    item.innerHTML = '<span class="log-time">' + new Date().toLocaleTimeString("th-TH") + '</span><strong>' + title + '</strong><br>' + body;
+    logList.prepend(item);
+}
+
+function escapeHtml(value){
+    const div = document.createElement("div");
+    div.textContent = value;
+    return div.innerHTML;
+}
+
+roleSelect.addEventListener("change", function(){
+    renderScenarios(false);
+    renderCommandReference();
+    updateBadges();
+});
+
+scenarioSelect.addEventListener("change", function(){
+    commandInput.value = selectedScenario().command;
+});
+
+commandInput.addEventListener("input", syncScenarioFromCommand);
+runCommand.addEventListener("click", runCurrentCommand);
+
+commandHelp.addEventListener("click", function(event){
+    const code = event.target.closest("code[data-command]");
+    if(!code) return;
+    commandInput.value = code.dataset.command;
+    syncScenarioFromCommand();
+});
+
+ticketFrame.addEventListener("load", function(){
+    if(!pendingFrameMessage) return;
+    const message = pendingFrameMessage;
+    pendingFrameMessage = null;
+    setTimeout(function(){
+        ticketFrame.contentWindow.postMessage(message, "*");
+    }, 120);
+});
+
+clearLog.addEventListener("click", function(){
+    logList.innerHTML = "<li>ยังไม่มีคำสั่งที่ถูกใช้งาน</li>";
+    statusBox.innerHTML = "<strong>ล้างบันทึกแล้ว</strong>พื้นที่ panel ถูกล้าง แต่เว็บขายตั๋วใน iframe ยังอยู่หน้าเดิม";
+});
+
+renderScenarios(false);
+renderCommandReference();
+updateBadges();
+</script>
+</body>
+</html>

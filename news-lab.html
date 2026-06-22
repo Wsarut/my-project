@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>News Simulation</title>
+<style>
+body{margin:0;font-family:Arial,sans-serif;background:#f2f2f2;color:#222}
+.navbar{background:#222}
+.navbar a{color:white;padding:14px 20px;display:inline-block;text-decoration:none}
+.navbar a:hover{background:#444}
+.header{text-align:center;padding:15px;font-size:20px;border-bottom:1px solid #aaa;background:white}
+.lab-container{display:flex;height:calc(100vh - 100px)}
+.lab-left{flex:2;border-right:1px solid #aaa;background:#e6e6e6}
+.lab-left iframe{width:100%;height:100%;border:none}
+.lab-right{flex:1;padding:22px;background:#f9f9f9;overflow:auto;box-sizing:border-box}
+.panel{background:white;border:1px solid #bbb;margin-bottom:16px}
+.panel h3{margin:0;padding:10px 12px;border-bottom:1px solid #bbb;background:#ededed;font-size:15px}
+.panel-body{padding:12px}
+label{display:block;margin:12px 0 6px;font-size:13px;font-weight:bold}
+select,textarea,input{width:100%;box-sizing:border-box;border:1px solid #aaa;font:inherit;background:white}
+select,input{padding:9px}
+textarea{min-height:128px;padding:10px;resize:vertical;font-family:Consolas,"Courier New",monospace;font-size:13px;background:#111;color:#e8e8e8}
+.command-help{font-family:Consolas,"Courier New",monospace;font-size:12px;line-height:1.55;background:#f3f3f3;border:1px solid #ddd;padding:10px}
+.command-help code{display:block;margin:4px 0;color:#111}
+.command-help .command-note{margin:2px 0 9px;color:#555;font-family:Arial,sans-serif;font-size:12px}
+.button-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+button{padding:11px 12px;border:1px solid #333;background:white;cursor:pointer;font-size:14px}
+button:hover{background:#e9e9e9}
+.primary{background:#222;color:white}
+.primary:hover{background:#444}
+.status-box{min-height:86px;line-height:1.55;font-size:14px}
+.status-box strong{display:block;margin-bottom:4px}
+.log-list{list-style:none;padding:0;margin:0}
+.log-list li{border-left:4px solid #777;background:#f5f5f5;margin-bottom:8px;padding:9px 10px;font-size:13px;line-height:1.45}
+.log-list li.attack{border-left-color:#c62828}
+.log-list li.defense{border-left-color:#2e7d32}
+.log-list li.error{border-left-color:#ef6c00}
+.log-list li.scan{border-left-color:#1565c0}
+.log-time{display:block;color:#666;font-size:12px;margin-bottom:3px}
+.badge-row{display:flex;gap:8px;flex-wrap:wrap}
+.badge{border:1px solid #aaa;background:#f6f6f6;padding:6px 8px;font-size:12px}
+.progress-list{margin:8px 0 0;padding-left:18px;font-size:13px;line-height:1.55}
+.progress-list .done{color:#1b6b33;font-weight:bold}
+.hidden{display:none}
+.summary-modal{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.55);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:9999;
+    padding:24px;
+}
+.summary-modal.show{display:flex}
+.summary-card{
+    width:min(620px, 92vw);
+    max-height:82vh;
+    overflow:auto;
+    background:white;
+    border:2px solid #222;
+    box-shadow:0 20px 50px rgba(0,0,0,.35);
+}
+.summary-card h3{
+    margin:0;
+    padding:14px 18px;
+    background:#222;
+    color:white;
+    font-size:17px;
+}
+.summary-content{
+    padding:18px;
+    line-height:1.6;
+}
+.summary-content ul{
+    margin:8px 0 16px;
+    padding-left:20px;
+}
+.summary-actions{
+    border-top:1px solid #ddd;
+    padding:12px 18px;
+    text-align:right;
+}
+</style>
+<link rel="stylesheet" href="assets/site-shell.css">
+</head>
+<body>
+
+<header class="site-header">
+    <a class="brand" href="index.html" aria-label="Web Security Simulation Lab หน้าแรก"><span class="brand-mark" aria-hidden="true">WS</span><span class="brand-name">Web Security Simulation Lab</span></a>
+    <nav class="navbar" aria-label="เมนูหลัก"><a href="index.html">Home</a><a href="index.html#path-title">Security Fundamentals</a><a class="active" href="simulation.html" aria-current="page">Simulation</a><a href="index.html#project-title">About</a></nav>
+</header>
+
+<div class="header">การจำลองเว็บไซต์ข่าว</div>
+
+<div class="lab-container">
+    <div class="lab-left">
+        <iframe id="newsFrame" src="labs/news-site/index.html" title="เว็บไซต์ข่าวจำลอง"></iframe>
+    </div>
+
+    <aside class="lab-right">
+        <div class="panel">
+            <h3>Mission Console</h3>
+            <div class="panel-body">
+                <div class="badge-row">
+                    <span class="badge" id="roleBadge">Role: Attack</span>
+                    <span class="badge" id="stageBadge">Stage: Recon</span>
+                    <span class="badge">Target: News Site</span>
+                </div>
+
+                <label for="roleSelect">ฝ่ายปฏิบัติการ</label>
+                <select id="roleSelect">
+                    <option value="attack">โจมตี (Attack Operator)</option>
+                    <option value="defense">ป้องกัน (Security Developer)</option>
+                </select>
+
+                <div id="attackTargetControls">
+                    <label for="targetPage">หน้าเป้าหมาย</label>
+                    <select id="targetPage">
+                        <option value="home">หน้าแรก</option>
+                        <option value="politics">การเมือง</option>
+                        <option value="economy">เศรษฐกิจ</option>
+                        <option value="sport">กีฬา</option>
+                        <option value="entertainment">บันเทิง</option>
+                        <option value="all">ทุกหน้า</option>
+                    </select>
+
+                    <label for="targetField">ส่วนที่ต้องการแก้</label>
+                    <select id="targetField">
+                        <option value="headline">พาดหัวข่าว</option>
+                        <option value="lead">ย่อหน้าเปิดข่าว</option>
+                        <option value="body">เนื้อหาย่อหน้าแรก</option>
+                    </select>
+
+                    <label for="attackPreset">เนื้อหาโจมตี</label>
+                    <select id="attackPreset"></select>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h3>Command Reference</h3>
+            <div class="panel-body">
+                <div class="command-help" id="commandHelp"></div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h3>Command Input</h3>
+            <div class="panel-body">
+                <label for="commandInput">พิมพ์คำสั่ง</label>
+                <textarea id="commandInput" spellcheck="false">scan target --map</textarea>
+
+                <label for="payloadInput">Payload / Note</label>
+                <input id="payloadInput" value="รายงานพิเศษ: แหล่งข่าวยืนยันข้อมูลใหม่" aria-label="Payload">
+
+                <div class="button-row">
+                    <button class="primary" id="runCommand" type="button">Run Command</button>
+                    <button id="clearLog" type="button">Clear Log</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h3>Situation Panel</h3>
+            <div class="panel-body status-box" id="statusBox">
+                <strong>ระบบพร้อมจำลอง</strong>
+                เริ่มจากการสแกน เลือกหน้าเป้าหมาย แล้วค่อยใช้คำสั่งโจมตีหรือป้องกันตามลำดับ
+            </div>
+        </div>
+
+        <div class="panel hidden" id="defenseChecklistPanel">
+            <h3>Defense Checklist</h3>
+            <div class="panel-body">
+                <ol class="progress-list" id="defenseProgress">
+                    <li data-step="inspect">inspect: ตรวจอาการหน้าเว็บ</li>
+                    <li data-step="trace">trace: หาต้นทางความผิดปกติ</li>
+                    <li data-step="isolate">isolate: แยกโฆษณา/สคริปต์ต้องสงสัย</li>
+                    <li data-step="filter">filter: เปิดตัวกรองแบบ manual</li>
+                    <li data-step="restore">restore: กู้คืนเนื้อหาและล้างสถานะ</li>
+                </ol>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h3>Operation Log</h3>
+            <div class="panel-body">
+                <ul class="log-list" id="logList">
+                    <li>ยังไม่มีคำสั่งที่ถูกใช้งาน</li>
+                </ul>
+            </div>
+        </div>
+    </aside>
+</div>
+
+<div class="summary-modal" id="resetSummaryModal" role="dialog" aria-modal="true" aria-labelledby="resetSummaryTitle">
+    <div class="summary-card">
+        <h3 id="resetSummaryTitle">สรุปผลการจำลองก่อนรีเซ็ต</h3>
+        <div class="summary-content" id="resetSummaryContent"></div>
+        <div class="summary-actions">
+            <button class="primary" id="closeSummary" type="button">ปิดสรุป</button>
+        </div>
+    </div>
+</div>
+
+<script>
+const frame = document.getElementById("newsFrame");
+const roleSelect = document.getElementById("roleSelect");
+const targetPage = document.getElementById("targetPage");
+const targetField = document.getElementById("targetField");
+const attackPreset = document.getElementById("attackPreset");
+const commandInput = document.getElementById("commandInput");
+const payloadInput = document.getElementById("payloadInput");
+const runCommand = document.getElementById("runCommand");
+const clearLog = document.getElementById("clearLog");
+const statusBox = document.getElementById("statusBox");
+const logList = document.getElementById("logList");
+const roleBadge = document.getElementById("roleBadge");
+const stageBadge = document.getElementById("stageBadge");
+const commandHelp = document.getElementById("commandHelp");
+const defenseProgress = document.getElementById("defenseProgress");
+const defenseChecklistPanel = document.getElementById("defenseChecklistPanel");
+const attackTargetControls = document.getElementById("attackTargetControls");
+const resetSummaryModal = document.getElementById("resetSummaryModal");
+const resetSummaryContent = document.getElementById("resetSummaryContent");
+const closeSummary = document.getElementById("closeSummary");
+
+const activeFrameCommands = [];
+const incidentHistory = [];
+const defenseSteps = {
+    inspect:false,
+    trace:false,
+    isolate:false,
+    filter:false
+};
+
+const attackPresets = {
+    home:[
+        {
+            label:"ข่าวลบ: เมืองล้มเหลว",
+            headline:"ด่วน: ระบบจัดการเมืองล้มเหลว ประชาชนเสียเวลาทั้งวัน",
+            lead:"ข้อมูลบนหน้าเว็บถูกเปลี่ยนให้กล่าวหาว่าหน่วยงานทุกฝ่ายทำงานผิดพลาดอย่างรุนแรง ทั้งที่ยังไม่มีหลักฐานยืนยัน",
+            body:"ข้อความที่ถูกแทรกพยายามทำให้ผู้อ่านเชื่อว่าสถานการณ์เลวร้ายกว่าความจริง และชี้นำให้ประชาชนโกรธหน่วยงานรัฐทันที"
+        },
+        {
+            label:"ป่วนเกรียน: ข่าวมั่วกลางเมือง",
+            headline:"ฮ่า ๆ เมืองนี้โดนปั่นแล้ว ข่าวจริงหายหมด",
+            lead:"เนื้อหาถูกแก้เป็นข้อความเยาะเย้ยแบบเด็กเกรียน ทำให้ความน่าเชื่อถือของเว็บข่าวลดลงทันที",
+            body:"ผู้โจมตีทิ้งข้อความปั่นประสาทไว้แทนข้อมูลเดิม เพื่อให้คนอ่านรู้สึกว่าเว็บนี้ถูกควบคุมโดยใครบางคน"
+        }
+    ],
+    politics:[
+        {
+            label:"ข่าวลบ: สภาวุ่นวาย",
+            headline:"สภาแตกเป็นเสี่ยง ประชุมล่มซ้ำหลังข้อมูลสำคัญหาย",
+            lead:"บทความถูกเปลี่ยนให้โจมตีภาพลักษณ์การประชุมและกล่าวหาว่าฝ่ายต่าง ๆ ปกปิดข้อมูล โดยไม่มีแหล่งอ้างอิงที่ตรวจสอบได้",
+            body:"ข้อความใหม่เน้นความขัดแย้งเกินจริง เพื่อทำให้ผู้อ่านเข้าใจว่าสถานการณ์การเมืองกำลังควบคุมไม่ได้"
+        },
+        {
+            label:"ป่วนเกรียน: นักการเมืองโดนล้อ",
+            headline:"ประกาศจากคนแฮ็ก: เวทีการเมืองวันนี้คือโชว์ตลก",
+            lead:"ผู้โจมตีเปลี่ยนย่อหน้าเปิดข่าวให้เป็นข้อความล้อเลียน ทำให้เนื้อหาข่าวจริงถูกกลบด้วยคำพูดป่วน",
+            body:"ข้อความป่วนพยายามลดความน่าเชื่อถือของข่าวการเมืองด้วยน้ำเสียงเยาะเย้ยและไร้ความเป็นทางการ"
+        }
+    ],
+    economy:[
+        {
+            label:"ข่าวลบ: ตลาดพัง",
+            headline:"เศรษฐกิจทรุดหนัก นักลงทุนแตกตื่นหลังตัวเลขถูกปั่น",
+            lead:"หน้าเศรษฐกิจถูกแก้ให้ดูเหมือนตลาดกำลังพังรุนแรง ทั้งที่ข้อมูลจริงยังต้องตรวจสอบจากหลายแหล่ง",
+            body:"ข้อความที่แทรกใช้คำรุนแรงเพื่อกระตุ้นความกลัวเกี่ยวกับราคาสินค้า ค่าเงินบาท และตลาดทุน"
+        },
+        {
+            label:"ป่วนเกรียน: เงินหายทั้งประเทศ",
+            headline:"เงินในกระเป๋าหายหมดแล้วจ้า เว็บนี้โดนยึด",
+            lead:"เนื้อหาถูกเปลี่ยนเป็นข้อความประชดประชันเกี่ยวกับค่าครองชีพ ทำให้ข่าวเศรษฐกิจดูไม่น่าเชื่อถือ",
+            body:"ผู้โจมตีใช้มุกปั่นแบบหยาบ ๆ เพื่อให้ผู้อ่านสะดุดและสงสัยว่าหน้าเศรษฐกิจถูกแก้ไข"
+        }
+    ],
+    sport:[
+        {
+            label:"ข่าวลบ: ทีมโดนปรับแพ้",
+            headline:"ลีกปั่นป่วน ทีมดังอาจโดนปรับแพ้หลังข้อมูลการแข่งขันผิดปกติ",
+            lead:"ข่าวกีฬาถูกแก้ให้ดูเหมือนมีเรื่องอื้อฉาวในลีก ทั้งที่ยังไม่มีประกาศทางการจากผู้จัดการแข่งขัน",
+            body:"ข้อความใหม่พยายามสร้างความสับสนให้แฟนบอล ด้วยการโยงผลการแข่งขัน ตารางแข่ง และคำตัดสินเข้าด้วยกันแบบไม่มีที่มา"
+        },
+        {
+            label:"ป่วนเกรียน: แฟนบอลโดนหลอก",
+            headline:"ทีมรักของคุณแพ้เพราะเว็บนี้บอกเอง ฮ่า ๆ",
+            lead:"ผู้โจมตีเปลี่ยนข่าวกีฬาให้เป็นข้อความล้อแฟนบอล ทำให้หน้าเว็บดูเหมือนถูกปั่นมากกว่ารายงานข่าว",
+            body:"ข้อความป่วนทำให้ผู้อ่านรู้สึกว่าข้อมูลการแข่งขันอาจถูกบิดเบือน และต้องตรวจสอบกับแหล่งข่าวอื่น"
+        }
+    ],
+    entertainment:[
+        {
+            label:"ข่าวลบ: ดราม่าปลอม",
+            headline:"วงการบันเทิงเดือด ข่าวลือปลอมถูกปล่อยจนแฟนคลับแตกตื่น",
+            lead:"บทความบันเทิงถูกแก้ให้ดูเหมือนมีดราม่ารุนแรง ทั้งที่รายละเอียดในข่าวไม่ได้อ้างแหล่งข้อมูลจริง",
+            body:"ข้อความที่แทรกพยายามขยายข่าวลือให้ดูเป็นเรื่องใหญ่ เพื่อเรียกคลิกและทำให้แฟนคลับเข้าใจผิด"
+        },
+        {
+            label:"ป่วนเกรียน: หนังโดนสาป",
+            headline:"หนังดังโดนแฮ็กรีวิว บอกเลยว่าพังแบบตะโกน",
+            lead:"ผู้โจมตีเปลี่ยนย่อหน้าเปิดข่าวเป็นคำล้อเลียนเกินจริง ทำให้ข่าวบันเทิงเสียโทนและดูไม่น่าเชื่อถือ",
+            body:"ข้อความป่วนใช้ภาษาประชดประชันเพื่อให้ผู้ใช้สังเกตได้ทันทีว่ามีบางอย่างผิดปกติในหน้าเว็บ"
+        }
+    ],
+    all:[
+        {
+            label:"ข่าวลบทุกหน้า: เว็บโดนยึด",
+            headline:"ประกาศฉุกเฉิน: เนื้อหาทุกหมวดถูกแก้โดยผู้ไม่หวังดี",
+            lead:"ข้อความนี้ถูกกระจายไปหลายหน้าข่าวเพื่อทำให้ผู้อ่านเชื่อว่าเว็บไซต์ทั้งหมดไม่น่าเชื่อถือ",
+            body:"ผู้โจมตีพยายามสร้างผลกระทบพร้อมกันหลายหมวดข่าว ทำให้ทีมป้องกันต้องไล่ตรวจทุกหน้า ไม่ใช่ดูเฉพาะหน้าเดียว"
+        },
+        {
+            label:"ป่วนทุกหน้า: ลายเซ็นเด็กเกรียน",
+            headline:"เว็บข่าวโดนปั่นครบทุกหน้า ใครอ่านอยู่ก็โดนหลอกแล้ว",
+            lead:"เนื้อหาหลายหมวดถูกเปลี่ยนเป็นข้อความเยาะเย้ย เพื่อให้ผู้ใช้เห็นชัดว่าเว็บไซต์ถูกแทรกแซง",
+            body:"ข้อความป่วนถูกใช้เป็นลายเซ็นของผู้โจมตี ทำให้ทีมป้องกันต้องตรวจว่าคำสั่งกระทบหน้าไหนบ้าง"
+        }
+    ]
+};
+
+const commandReference = {
+    attack:[
+        { command:"scan target --map", note:"ดูแผนผังหน้าและจุดที่แก้ไขได้ก่อนโจมตี" },
+        { command:"attack news --page <page> --field headline", note:"แก้พาดหัวข่าวของหน้าที่เลือก" },
+        { command:"attack news --page <page> --field lead", note:"แก้ย่อหน้าเปิดข่าวของหน้าที่เลือก" },
+        { command:"attack news --page <page> --field body", note:"แก้เนื้อหาย่อหน้าแรกของหน้าที่เลือก" },
+        { command:"inject ad --slot sidebar --loop", note:"แทรกโฆษณาหลอก เมื่อคลิกจะเกิดอาการเว็บซ้อนและโหลดวน" }
+    ],
+    defense:[
+        { command:"defense inspect --symptoms", note:"ตรวจว่าอาการผิดปกติอยู่ตรงไหนบ้าง" },
+        { command:"defense trace --source", note:"ไล่หาว่ามาจากข่าวที่ถูกแก้หรือโฆษณาที่ถูกแทรก" },
+        { command:"defense isolate --ad-slot", note:"แยกพื้นที่โฆษณา/สคริปต์ต้องสงสัยออกจากเว็บ" },
+        { command:"defense enable --manual-filter", note:"เปิดการคัดกรองแบบ manual หลังตรวจครบขั้น" },
+        { command:"defense restore --verified", note:"กู้คืนเมื่อเปิดตัวกรองสำเร็จแล้ว" },
+        { command:"defense reset --all", note:"ล้างสถานะจำลองกลับค่าเริ่มต้น" }
+    ]
+};
+
+function renderCommandReference(){
+    const commands = commandReference[roleSelect.value];
+    commandHelp.innerHTML = commands.map(function(item){
+        return "<code>" + item.command + "</code><div class=\"command-note\">" + item.note + "</div>";
+    }).join("");
+}
+
+function normalizeCommand(value){
+    return value.trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+function currentTarget(){
+    return {
+        page:targetPage.value,
+        field:targetField.value,
+        payload:payloadInput.value
+    };
+}
+
+function renderAttackPresets(){
+    const presets = attackPresets[targetPage.value] || attackPresets.home;
+    attackPreset.innerHTML = presets.map(function(item, index){
+        return '<option value="' + index + '">' + item.label + '</option>';
+    }).join("");
+    updatePayloadFromPreset();
+}
+
+function updatePayloadFromPreset(){
+    const presets = attackPresets[targetPage.value] || attackPresets.home;
+    const selected = presets[Number(attackPreset.value)] || presets[0];
+    payloadInput.value = selected[targetField.value] || selected.headline;
+}
+
+function runCurrentCommand(){
+    const command = normalizeCommand(commandInput.value);
+    const role = roleSelect.value;
+
+    updateBadges();
+
+    if(command === "scan target --map" || command === "scan site --status"){
+        reportStatus("สแกนเป้าหมายเสร็จ", "พบหน้าเว็บข่าว 5 หน้า และมีจุดที่แก้ไขได้คือพาดหัว ย่อหน้าเปิดข่าว เนื้อหาย่อหน้าแรก และพื้นที่ sidebar สำหรับโฆษณา", "scan");
+        return;
+    }
+
+    if(role === "attack"){
+        runAttackCommand(command);
+        return;
+    }
+
+    runDefenseCommand(command);
+}
+
+function runAttackCommand(command){
+    if(command.startsWith("attack news")){
+        const page = readArg(command, "--page") || targetPage.value;
+        const field = readArg(command, "--field") || targetField.value;
+
+        if(!["home","politics","economy","sport","entertainment","all"].includes(page)){
+            reportError("หน้าเป้าหมายไม่ถูกต้อง", "ใช้ page ได้เฉพาะ home, politics, economy, sport, entertainment หรือ all");
+            return;
+        }
+
+        if(!["headline","lead","body"].includes(field)){
+            reportError("ส่วนข่าวไม่ถูกต้อง", "ใช้ field ได้เฉพาะ headline, lead หรือ body");
+            return;
+        }
+
+        sendToNewsSite("ATTACK_NEWS", { page, field, payload:payloadInput.value });
+        reportStatus("แก้ไขข่าวแบบเจาะจงหน้าแล้ว", "คำสั่งแก้ " + readablePage(page) + " ในส่วน " + readableField(field) + " ถูกส่งเข้าเว็บข่าว ผู้ใช้ต้องคลิกดูแต่ละแท็บเพื่อวิเคราะห์ว่าหน้าไหนผิดปกติ", "attack");
+        return;
+    }
+
+    if(command === "inject ad --slot sidebar --loop"){
+        sendToNewsSite("ATTACK_AD", currentTarget());
+        reportStatus("แทรกโฆษณาหลอกแล้ว", "มีโฆษณาแปลกปลอมถูกแทรกในเว็บไซต์ หากผู้ใช้กดเข้าไปจะเห็นอาการโหลดซ้ำและเว็บซ้อนใน iframe แบบผิดปกติ", "attack");
+        return;
+    }
+
+    reportError("คำสั่งโจมตีไม่ถูกต้อง", "ตรวจรูปแบบใน Command Reference อีกครั้ง การโจมตีต้องระบุชนิดคำสั่ง หน้า และ field ให้ครบ");
+}
+
+function runDefenseCommand(command){
+    if(command === "defense inspect --symptoms"){
+        defenseSteps.inspect = true;
+        sendToNewsSite("DEFENSE_INSPECT", currentTarget());
+        reportStatus("ตรวจอาการเบื้องต้นแล้ว", "พบความผิดปกติที่อาจอยู่ได้ทั้งเนื้อหาข่าวและพื้นที่โฆษณา ขั้นถัดไปต้อง trace source เพื่อหาต้นทาง", "defense");
+        updateDefenseProgress();
+        return;
+    }
+
+    if(command === "defense trace --source"){
+        if(!requireDefenseStep("inspect", "ต้อง inspect อาการก่อน trace source")) return;
+        defenseSteps.trace = true;
+        sendToNewsSite("DEFENSE_TRACE", currentTarget());
+        reportStatus("ไล่ต้นทางความผิดปกติแล้ว", "ระบบทำเครื่องหมายจุดที่น่าสงสัย เช่น content hash เปลี่ยน หรือ ad slot มีพฤติกรรม redirect/load loop", "defense");
+        updateDefenseProgress();
+        return;
+    }
+
+    if(command === "defense isolate --ad-slot"){
+        if(!requireDefenseStep("trace", "ต้อง trace source ก่อน isolate ad slot")) return;
+        defenseSteps.isolate = true;
+        sendToNewsSite("DEFENSE_ISOLATE", currentTarget());
+        reportStatus("แยกพื้นที่โฆษณาต้องสงสัยแล้ว", "ad slot ถูกกักไว้ชั่วคราว แต่ยังไม่ถือว่าป้องกันสมบูรณ์ ต้องเปิด manual filter ต่อ", "defense");
+        updateDefenseProgress();
+        return;
+    }
+
+    if(command === "defense enable --manual-filter"){
+        if(!requireDefenseStep("isolate", "ต้อง isolate ad slot ก่อนเปิด manual filter")) return;
+        defenseSteps.filter = true;
+        sendToNewsSite("DEFENSE_FILTER", currentTarget());
+        reportStatus("เปิด manual filter แล้ว", "ระบบเริ่มกรองโฆษณาและ payload ที่ผิดปกติ แต่ต้อง restore แบบ verified เพื่อกู้เนื้อหากลับ", "defense");
+        updateDefenseProgress();
+        return;
+    }
+
+    if(command === "defense restore --verified"){
+        if(!requireDefenseStep("filter", "ต้อง enable manual filter ก่อน restore")) return;
+        sendToNewsSite("DEFENSE_RESTORE", currentTarget());
+        resetDefenseSteps();
+        reportStatus("กู้คืนเว็บไซต์แบบ verified แล้ว", "ล้างข่าวที่ถูกแก้ ลบโฆษณาหลอก และเปิดสถานะป้องกันไว้ ผู้ใช้จะเห็นว่าเว็บกลับมาปกติหลังผ่านหลายขั้นตอน", "defense");
+        updateDefenseProgress();
+        return;
+    }
+
+    if(command === "defense reset --all"){
+        const summaryHtml = buildResetSummary();
+        sendToNewsSite("RESET", currentTarget());
+        activeFrameCommands.length = 0;
+        resetDefenseSteps();
+        showResetSummary(summaryHtml);
+        incidentHistory.length = 0;
+        reportStatus("รีเซ็ตสถานะจำลองทั้งหมด", "เว็บข่าวกลับค่าเริ่มต้น และลำดับขั้นป้องกันถูกล้างใหม่", "defense");
+        updateDefenseProgress();
+        return;
+    }
+
+    reportError("คำสั่งป้องกันไม่ถูกต้อง", "การป้องกันต้องทำตามลำดับ inspect > trace > isolate > filter > restore");
+}
+
+function readArg(command, name){
+    const parts = command.split(" ");
+    const index = parts.indexOf(name);
+    return index >= 0 ? parts[index + 1] : "";
+}
+
+function requireDefenseStep(step, message){
+    if(defenseSteps[step]) return true;
+    reportError("ลำดับขั้นยังไม่ครบ", message);
+    return false;
+}
+
+function sendToNewsSite(action, detail){
+    if(action !== "RESET"){
+        incidentHistory.push({
+            action:action,
+            detail:detail || {},
+            time:new Date().toLocaleTimeString("th-TH")
+        });
+    }
+
+    if(action === "RESET" || action === "DEFENSE_RESTORE"){
+        activeFrameCommands.length = 0;
+    }else if(action.startsWith("ATTACK") && !activeFrameCommands.some(function(item){ return item.action === action && JSON.stringify(item.detail) === JSON.stringify(detail); })){
+        activeFrameCommands.push({ action, detail });
+    }
+
+    frame.contentWindow.postMessage({
+        action:action,
+        detail:detail
+    }, "*");
+}
+
+function buildResetSummary(){
+    const attacks = incidentHistory.filter(function(item){
+        return item.action.startsWith("ATTACK");
+    });
+    const defenses = incidentHistory.filter(function(item){
+        return item.action.startsWith("DEFENSE");
+    });
+
+    const attackItems = attacks.length ? attacks.map(describeAttack).join("") : "<li>ไม่พบคำสั่งโจมตีในรอบนี้</li>";
+    const defenseItems = defenses.length ? defenses.map(describeDefense).join("") : "<li>ยังไม่มีคำสั่งป้องกันที่ทำสำเร็จในรอบนี้</li>";
+
+    const protectedItems = [];
+    if(defenses.some(function(item){ return item.action === "DEFENSE_INSPECT"; })) protectedItems.push("ตรวจพบอาการผิดปกติจากหน้าเว็บและ ad slot");
+    if(defenses.some(function(item){ return item.action === "DEFENSE_TRACE"; })) protectedItems.push("ระบุจุดต้องสงสัย เช่นเนื้อหาถูกแก้และโฆษณาแปลกปลอม");
+    if(defenses.some(function(item){ return item.action === "DEFENSE_ISOLATE"; })) protectedItems.push("แยกโฆษณาต้องสงสัยไม่ให้กดทำงานต่อ");
+    if(defenses.some(function(item){ return item.action === "DEFENSE_FILTER"; })) protectedItems.push("เปิด manual filter เพื่อบล็อกคำสั่งผิดปกติรอบถัดไป");
+    if(defenses.some(function(item){ return item.action === "DEFENSE_RESTORE"; })) protectedItems.push("กู้คืน baseline ของเนื้อหาและล้างร่องรอยโจมตี");
+
+    return `
+        <p><strong>ผลกระทบที่ตรวจพบในรอบนี้</strong></p>
+        <ul>${attackItems}</ul>
+        <p><strong>ขั้นตอนป้องกันที่ดำเนินการ</strong></p>
+        <ul>${defenseItems}</ul>
+        <p><strong>สิ่งที่ป้องกันหรือควบคุมได้</strong></p>
+        <ul>${protectedItems.length ? protectedItems.map(function(text){ return "<li>" + text + "</li>"; }).join("") : "<li>ยังไม่ได้เปิดขั้นตอนป้องกันครบถ้วนก่อนรีเซ็ต</li>"}</ul>
+        <p><strong>สถานะหลังคำสั่ง reset</strong><br>เว็บไซต์ข่าวถูกล้างกลับสู่สภาพเริ่มต้น ลำดับขั้นป้องกันและประวัติคำสั่งของรอบนี้ถูกเริ่มใหม่</p>
+    `;
+}
+
+function describeAttack(item){
+    if(item.action === "ATTACK_NEWS"){
+        return "<li>แก้ไขข่าว: " + readablePage(item.detail.page || "home") + " / " + readableField(item.detail.field || "headline") + "</li>";
+    }
+
+    if(item.action === "ATTACK_AD"){
+        return "<li>แทรกโฆษณาหลอก: เพิ่มไอคอนโฆษณาแปลกปลอมที่กดแล้วเกิดหน้าโหลดวนและเว็บซ้อน</li>";
+    }
+
+    return "<li>" + item.action + "</li>";
+}
+
+function describeDefense(item){
+    const names = {
+        DEFENSE_INSPECT:"inspect: ตรวจอาการผิดปกติ",
+        DEFENSE_TRACE:"trace: ไล่หาต้นทางการโจมตี",
+        DEFENSE_ISOLATE:"isolate: แยก ad slot ต้องสงสัย",
+        DEFENSE_FILTER:"filter: เปิด manual filter",
+        DEFENSE_RESTORE:"restore: กู้คืนแบบ verified"
+    };
+    return "<li>" + (names[item.action] || item.action) + "</li>";
+}
+
+function showResetSummary(html){
+    resetSummaryContent.innerHTML = html;
+    resetSummaryModal.classList.add("show");
+}
+
+function reportStatus(title, body, type){
+    statusBox.innerHTML = "<strong>" + title + "</strong>" + body;
+    addLog(title, body, type);
+}
+
+function reportError(title, body){
+    statusBox.innerHTML = "<strong>" + title + "</strong>" + body;
+    addLog(title, body, "error");
+}
+
+function addLog(title, body, type){
+    if(logList.children.length === 1 && logList.children[0].textContent.includes("ยังไม่มี")){
+        logList.innerHTML = "";
+    }
+    const item = document.createElement("li");
+    item.className = type || "";
+    item.innerHTML = '<span class="log-time">' + new Date().toLocaleTimeString("th-TH") + '</span><strong>' + title + '</strong><br>' + body;
+    logList.prepend(item);
+}
+
+function updateBadges(){
+    roleBadge.textContent = roleSelect.value === "attack" ? "Role: Attack" : "Role: Defense";
+    stageBadge.textContent = roleSelect.value === "attack" ? "Stage: Recon/Exploit" : "Stage: Inspect/Contain";
+    defenseChecklistPanel.classList.toggle("hidden", roleSelect.value !== "defense");
+    attackTargetControls.classList.toggle("hidden", roleSelect.value !== "attack");
+}
+
+function updateDefenseProgress(){
+    defenseProgress.querySelectorAll("li").forEach(function(item){
+        const step = item.dataset.step;
+        const done = step === "restore" ? false : defenseSteps[step];
+        item.classList.toggle("done", Boolean(done));
+    });
+}
+
+function resetDefenseSteps(){
+    Object.keys(defenseSteps).forEach(function(key){
+        defenseSteps[key] = false;
+    });
+}
+
+function readablePage(page){
+    const names = { home:"หน้าแรก", politics:"การเมือง", economy:"เศรษฐกิจ", sport:"กีฬา", entertainment:"บันเทิง", all:"ทุกหน้า" };
+    return names[page] || page;
+}
+
+function readableField(field){
+    const names = { headline:"พาดหัวข่าว", lead:"ย่อหน้าเปิดข่าว", body:"เนื้อหาย่อหน้าแรก" };
+    return names[field] || field;
+}
+
+roleSelect.addEventListener("change", function(){
+    updateBadges();
+    renderCommandReference();
+    commandInput.value = roleSelect.value === "attack" ? "scan target --map" : "defense inspect --symptoms";
+});
+
+targetPage.addEventListener("change", function(){
+    if(roleSelect.value === "attack"){
+        commandInput.value = "attack news --page " + targetPage.value + " --field " + targetField.value;
+        renderAttackPresets();
+    }
+});
+
+targetField.addEventListener("change", function(){
+    if(roleSelect.value === "attack"){
+        commandInput.value = "attack news --page " + targetPage.value + " --field " + targetField.value;
+        updatePayloadFromPreset();
+    }
+});
+
+attackPreset.addEventListener("change", updatePayloadFromPreset);
+
+runCommand.addEventListener("click", runCurrentCommand);
+
+clearLog.addEventListener("click", function(){
+    logList.innerHTML = "<li>ยังไม่มีคำสั่งที่ถูกใช้งาน</li>";
+    statusBox.innerHTML = "<strong>ล้างบันทึกแล้ว</strong>สถานะเว็บไซต์ด้านซ้ายยังคงเดิม แต่บันทึกการปฏิบัติการถูกล้างออกจากแผงนี้";
+});
+
+closeSummary.addEventListener("click", function(){
+    resetSummaryModal.classList.remove("show");
+});
+
+resetSummaryModal.addEventListener("click", function(event){
+    if(event.target === resetSummaryModal){
+        resetSummaryModal.classList.remove("show");
+    }
+});
+
+frame.addEventListener("load", function(){
+    activeFrameCommands.forEach(function(item){
+        frame.contentWindow.postMessage({
+            action:item.action,
+            detail:item.detail
+        }, "*");
+    });
+});
+
+renderCommandReference();
+renderAttackPresets();
+updateBadges();
+updateDefenseProgress();
+</script>
+</body>
+</html>

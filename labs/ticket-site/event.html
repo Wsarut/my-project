@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StagePass - ซื้อตั๋ว</title>
+<link rel="stylesheet" href="ticket.css">
+</head>
+<body>
+<header class="site-header">
+    <nav class="nav">
+        <a class="brand" href="index.html">StagePass</a>
+        <div class="nav-actions">
+            <a class="nav-link" href="login.html">เข้าสู่ระบบ</a>
+            <a class="nav-link signup" href="register.html">สมัครสมาชิก</a>
+        </div>
+    </nav>
+    <div class="subline"></div>
+</header>
+
+<main class="buy-page">
+    <section>
+        <div class="event-hero">
+            <img id="eventImage" src="" alt="">
+        </div>
+    </section>
+
+    <section class="event-info-bar">
+        <div class="event-price" id="eventPrice">ราคา</div>
+        <div class="detail-stack">
+            <strong id="eventTitle">รายละเอียด</strong>
+            <span class="muted" id="eventMeta">รายละเอียด........</span>
+            <span id="eventDescription"></span>
+        </div>
+        <button class="button" id="buyButton" type="button">เลือกบัตรและชำระเงิน</button>
+    </section>
+</main>
+
+<div class="purchase-modal" id="purchaseModal" role="dialog" aria-modal="true">
+    <div class="purchase-card" id="purchaseCard">
+        <form class="payment-form" id="paymentForm">
+            <h2>ข้อมูลชำระเงิน</h2>
+            <p class="muted">กรอกข้อมูลเพื่อออกบัตรเข้างาน ระบบหน้านี้ใช้สำหรับแสดงผลเท่านั้น</p>
+            <input id="buyerName" type="text" placeholder="ชื่อผู้เข้าชม">
+            <input id="buyerEmail" type="email" placeholder="อีเมลรับบัตร">
+            <input id="buyerAddress" type="text" placeholder="ที่อยู่ / ข้อมูลติดต่อ">
+            <input type="text" placeholder="เลขบัตร / เลขอ้างอิง">
+            <input type="text" placeholder="ชื่อบนบัตร">
+            <div class="modal-actions">
+                <button class="button secondary" id="cancelModal" type="button">ยกเลิก</button>
+                <button class="button" type="submit">ยืนยันชำระเงิน</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="ticket-data.js"></script>
+<script>
+const params = new URLSearchParams(location.search);
+const eventId = params.get("id") || "luna";
+const eventData = window.TicketEvents[eventId] || window.TicketEvents.luna;
+
+document.title = "StagePass - " + eventData.artist;
+document.getElementById("eventImage").src = eventData.image;
+document.getElementById("eventImage").alt = eventData.title;
+document.getElementById("eventPrice").textContent = window.formatTicketPrice(eventData.price);
+document.getElementById("eventTitle").textContent = eventData.title;
+document.getElementById("eventMeta").textContent = eventData.venue + " • " + eventData.date;
+document.getElementById("eventDescription").textContent = eventData.detail;
+
+const modal = document.getElementById("purchaseModal");
+const purchaseCard = document.getElementById("purchaseCard");
+const paymentForm = document.getElementById("paymentForm");
+
+function openPaymentForm(){
+    modal.classList.add("show");
+}
+
+function closePaymentModal(){
+    modal.classList.remove("show");
+}
+
+document.getElementById("buyButton").addEventListener("click", openPaymentForm);
+document.getElementById("cancelModal").addEventListener("click", closePaymentModal);
+
+paymentForm.addEventListener("submit", function(event){
+    event.preventDefault();
+    const buyerName = document.getElementById("buyerName").value.trim() || "ผู้เข้าชม";
+    const buyerEmail = document.getElementById("buyerEmail").value.trim() || "ไม่ระบุอีเมล";
+    const buyerAddress = document.getElementById("buyerAddress").value.trim() || "ไม่ระบุที่อยู่";
+    const ticketCode = "SP-" + eventId.toUpperCase() + "-" + Math.floor(1000 + Math.random() * 9000);
+
+    purchaseCard.innerHTML = `
+        <div>
+            <h2>ชำระเงินสำเร็จแล้ว</h2>
+            <div class="purchase-detail">
+                <strong>${eventData.title}</strong><br>
+                ชื่อบนบัตร: ${buyerName}<br>
+                อีเมลรับบัตร: ${buyerEmail}<br>
+                ที่อยู่/ข้อมูลติดต่อ: ${buyerAddress}<br>
+                สถานที่: ${eventData.venue}<br>
+                วันแสดง: ${eventData.date}<br>
+                ที่นั่ง: ${eventData.seat}<br>
+                รหัสบัตรเข้างาน: ${ticketCode}<br>
+                ราคา: ${window.formatTicketPrice(eventData.price)}
+            </div>
+            <button class="button secondary" id="closeModal" type="button">ตกลง</button>
+        </div>
+    `;
+
+    document.getElementById("closeModal").addEventListener("click", closePaymentModal);
+});
+
+modal.addEventListener("click", function(event){
+    if(event.target === modal){
+        closePaymentModal();
+    }
+});
+</script>
+<script src="ticket-sim.js"></script>
+<script src="../challenge-bridge.js"></script>
+</body>
+</html>

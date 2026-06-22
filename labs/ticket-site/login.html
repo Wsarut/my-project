@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StagePass - เข้าสู่ระบบ</title>
+<link rel="stylesheet" href="ticket.css">
+</head>
+<body>
+<header class="site-header">
+    <nav class="nav">
+        <a class="brand" href="index.html">StagePass</a>
+        <div class="nav-actions">
+            <a class="nav-link" href="login.html">เข้าสู่ระบบ</a>
+            <a class="nav-link signup" href="register.html">สมัครสมาชิก</a>
+        </div>
+    </nav>
+    <div class="subline"></div>
+</header>
+
+<main class="login-page">
+    <section class="account-card">
+        <div class="account-copy">
+            <div class="eyebrow">StagePass Member</div>
+            <h1>เข้าสู่ระบบเพื่อไม่พลาดข่าวบัตรอีเว้นท์</h1>
+            <p>บัญชีสมาชิกช่วยรวมข่าวเปิดขายบัตร รอบพรีเซลล์ และประกาศเปลี่ยนแปลงของอีเว้นท์ที่ติดตามไว้ในที่เดียว</p>
+            <ul class="benefit-list">
+                <li>รับแจ้งเตือนเมื่อศิลปินหรืออีเว้นท์ที่สนใจเริ่มขายบัตร</li>
+                <li>ติดตามสถานะบัตร โซนที่นั่ง และรายละเอียดวันแสดงได้เร็วขึ้น</li>
+                <li>เก็บประวัติอีเว้นท์ที่สนใจไว้สำหรับกลับมาดูภายหลัง</li>
+            </ul>
+            <p class="account-switch">ยังไม่มีบัญชี? <a href="register.html">สมัครสมาชิกเพื่อรับข่าวสารบัตร</a></p>
+        </div>
+        <form class="form account-form">
+            <h2>เข้าสู่ระบบ</h2>
+            <input type="text" placeholder="อีเมลหรือชื่อผู้ใช้">
+            <input type="password" placeholder="รหัสผ่าน">
+            <button class="button" type="submit">เข้าสู่ระบบ</button>
+        </form>
+    </section>
+</main>
+
+<script>
+document.querySelector("form").addEventListener("submit", function(event){
+    event.preventDefault();
+});
+</script>
+<script src="ticket-sim.js"></script>
+<script src="../challenge-bridge.js"></script>
+</body>
+</html>

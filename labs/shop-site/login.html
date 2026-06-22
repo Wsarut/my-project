@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GreenNest - เข้าสู่ระบบ</title>
+<link rel="stylesheet" href="shop.css">
+</head>
+<body>
+<header class="site-header">
+    <nav class="nav">
+        <div class="menu-icon" aria-label="เมนู"><span></span><span></span><span></span></div>
+        <a class="logo-mark" href="index.html" aria-label="GreenNest"><span></span></a>
+        <a class="optional" href="products.html">สินค้า</a>
+        <a class="optional" href="login.html">เข้าสู่ระบบ</a>
+        <a class="optional" href="cart.html">ตะกร้า</a>
+        <a class="cart-icon" href="cart.html" aria-label="ตะกร้า">C</a>
+    </nav>
+    <div class="subline"></div>
+</header>
+
+<main class="page">
+    <section class="login-card">
+        <div class="login-intro">
+            <p>เข้าสู่ระบบ GreenNest เพื่อดูคำสั่งซื้อจำลอง รายการโปรด และข้อมูลสมาชิก หน้านี้เป็นแบบฟอร์มตัวอย่างเท่านั้น ไม่มีการส่งหรือจัดเก็บข้อมูลจริง</p>
+            <p>กรอกชื่อผู้ใช้และรหัสผ่านใดก็ได้เพื่อทดลองลักษณะหน้าเข้าสู่ระบบของเว็บขายสินค้า</p>
+        </div>
+
+        <form class="form" action="products.html">
+            <input type="text" name="username" placeholder="ชื่อผู้ใช้">
+            <input type="password" name="password" placeholder="รหัสผ่าน">
+            <div class="button-row">
+                <button class="button primary" type="submit">เข้าสู่ระบบ</button>
+            </div>
+        </form>
+    </section>
+</main>
+
+<script src="shop-sim.js"></script>
+<script src="../challenge-bridge.js"></script>
+</body>
+</html>

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GreenNest - รายละเอียดสินค้า</title>
+<link rel="stylesheet" href="shop.css">
+</head>
+<body>
+<header class="site-header">
+    <nav class="nav">
+        <div class="menu-icon" aria-label="เมนู"><span></span><span></span><span></span></div>
+        <a class="logo-mark" href="index.html" aria-label="GreenNest"><span></span></a>
+        <a class="optional" href="products.html">สินค้า</a>
+        <a class="optional" href="login.html">เข้าสู่ระบบ</a>
+        <a class="optional" href="cart.html">ตะกร้า</a>
+        <a class="cart-icon" href="cart.html" aria-label="ตะกร้า">C</a>
+    </nav>
+    <div class="subline"></div>
+</header>
+
+<main class="page">
+    <section class="product-detail">
+        <div class="detail-cover">
+            <img id="productImage" src="" alt="">
+        </div>
+
+        <div class="detail-info">
+            <div class="eyebrow" id="productCategory"></div>
+            <h1 id="productName"></h1>
+            <div class="detail-price" id="productPrice"></div>
+            <p id="productDescription"></p>
+
+            <ul class="detail-list" id="productDetails"></ul>
+
+            <div class="option-row">
+                <label for="quantity">จำนวน</label>
+                <select id="quantity">
+                    <option>1</option>
+                    <option>2</option>
+                    <option>3</option>
+                    <option>4</option>
+                </select>
+            </div>
+
+            <div class="option-row">
+                <label for="delivery">ตัวเลือกจัดส่ง</label>
+                <select id="delivery">
+                    <option>จัดส่งมาตรฐาน</option>
+                    <option>จัดส่งด่วนจำลอง</option>
+                    <option>รับเองที่ร้านจำลอง</option>
+                </select>
+            </div>
+
+            <div class="detail-actions">
+                <button class="button primary" id="addToCart" type="button">เพิ่มลงตะกร้า</button>
+                <a class="button" href="products.html">กลับไปดูสินค้า</a>
+            </div>
+
+            <div class="add-confirmation" id="addConfirmation"></div>
+            <p class="muted" id="addNote">เลือกจำนวนและวิธีจัดส่งก่อนเพิ่มลงตะกร้า รายการจะถูกบันทึกเฉพาะในเบราว์เซอร์นี้เพื่อจำลองการซื้อสินค้า</p>
+        </div>
+    </section>
+</main>
+
+<script src="shop-data.js"></script>
+<script>
+const params = new URLSearchParams(location.search);
+const productId = params.get("id") || "cup";
+const product = window.ShopProducts[productId] || window.ShopProducts.cup;
+
+document.getElementById("productCategory").textContent = product.category;
+document.getElementById("productName").textContent = product.name;
+document.getElementById("productPrice").textContent = window.formatBaht(product.price);
+document.getElementById("productDescription").textContent = product.description;
+document.getElementById("productImage").src = product.image;
+document.getElementById("productImage").alt = product.name;
+document.getElementById("productDetails").innerHTML = product.details.map(function(item){
+    return "<li>" + item + "</li>";
+}).join("");
+
+document.getElementById("addToCart").addEventListener("click", function(){
+    const quantity = Number(document.getElementById("quantity").value);
+    const delivery = document.getElementById("delivery").value;
+    window.ShopCart.add(productId, quantity, delivery);
+
+    const confirmation = document.getElementById("addConfirmation");
+    confirmation.innerHTML = "เพิ่มสินค้าเข้าตะกร้าแล้ว: " + product.name + " จำนวน " + quantity + " ชิ้น <a href=\"cart.html\">ไปที่ตะกร้า</a>";
+    confirmation.classList.add("show");
+    document.getElementById("addNote").textContent = "คุณสามารถเพิ่มสินค้าเดิมอีกครั้ง หรือกลับไปเลือกสินค้าชิ้นอื่นได้";
+});
+</script>
+<script src="shop-sim.js"></script>
+<script src="../challenge-bridge.js"></script>
+</body>
+</html>

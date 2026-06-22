@@ -1,0 +1,18 @@
+:root{--shell-nav:#111714;--shell-green:#74ff9b;--shell-line:#d5ddd8;--shell-ink:#18211d}
+*{letter-spacing:0}
+.site-header{min-height:62px;display:flex;align-items:center;justify-content:space-between;gap:24px;padding:0 max(24px,calc((100vw - 1180px) / 2));background:var(--shell-nav);color:#fff;border-bottom:1px solid rgba(255,255,255,.14);position:relative;z-index:100}
+.site-header .brand{min-height:62px;display:flex;align-items:center;gap:10px;color:#fff;text-decoration:none;font-weight:700}
+.site-header .brand-mark{width:30px;height:30px;display:grid;place-items:center;border:1px solid rgba(116,255,155,.55);color:var(--shell-green);font:700 12px Consolas,"Courier New",monospace}
+.site-header .brand-name{font-size:14px}
+.site-header .navbar{display:flex;align-items:center;gap:4px;background:transparent}
+.site-header .navbar>a{min-height:62px;display:inline-flex;align-items:center;padding:0 15px;color:#dce3df;background:transparent;text-decoration:none;border-bottom:3px solid transparent;font-size:14px}
+.site-header .navbar>a:hover,.site-header .navbar>a.active{color:#fff;background:transparent;border-bottom-color:var(--shell-green)}
+.lab-titlebar,.site-header+.header{min-height:56px;display:flex;align-items:center;justify-content:center;gap:12px;padding:12px 24px;border-bottom:1px solid var(--shell-line);background:#fff;color:var(--shell-ink);font-size:18px;font-weight:700}
+.lab-title-code{color:#176b43;font:700 11px Consolas,"Courier New",monospace}
+body>.lab-container,body>main.lab-container{height:calc(100vh - 118px)}
+@media (max-width:900px){
+    .site-header{align-items:flex-start;flex-direction:column;gap:0;padding:0 20px 10px}
+    .site-header .navbar{width:100%;overflow-x:auto}
+    .site-header .navbar>a{min-height:44px;padding:0 12px;white-space:nowrap}
+    body>.lab-container,body>main.lab-container{height:calc(100vh - 162px)}
+}

@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shop Simulation</title>
+<style>
+body{margin:0;font-family:Arial,sans-serif;background:#f2f2f2;color:#222}
+.navbar{background:#222}
+.navbar a{color:white;padding:14px 20px;display:inline-block;text-decoration:none}
+.navbar a:hover{background:#444}
+.header{text-align:center;padding:15px;font-size:20px;border-bottom:1px solid #aaa;background:white}
+.lab-container{display:flex;height:calc(100vh - 100px)}
+.lab-left{flex:2;border-right:1px solid #aaa;background:#e6e6e6}
+.lab-left iframe{width:100%;height:100%;border:none}
+.lab-right{flex:1;padding:22px;background:#f9f9f9;overflow:auto;box-sizing:border-box}
+.panel{background:white;border:1px solid #bbb;margin-bottom:16px}
+.panel h3{margin:0;padding:10px 12px;border-bottom:1px solid #bbb;background:#ededed;font-size:15px}
+.panel-body{padding:12px;line-height:1.6;font-size:14px}
+.badge-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.badge{border:1px solid #aaa;background:#f6f6f6;padding:6px 8px;font-size:12px}
+label{display:block;margin:12px 0 6px;font-size:13px;font-weight:bold}
+select,textarea,input{width:100%;box-sizing:border-box;border:1px solid #aaa;font:inherit;background:white}
+select,input{padding:9px}
+textarea{min-height:116px;padding:10px;resize:vertical;font-family:Consolas,"Courier New",monospace;font-size:13px;background:#111;color:#e8e8e8}
+.command-help{font-family:Consolas,"Courier New",monospace;font-size:12px;line-height:1.55;background:#f3f3f3;border:1px solid #ddd;padding:10px}
+.command-help code{display:block;margin:4px 0;color:#111}
+.command-help .command-note{margin:2px 0 9px;color:#555;font-family:Arial,sans-serif;font-size:12px}
+.button-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+button{padding:11px 12px;border:1px solid #333;background:white;cursor:pointer;font-size:14px}
+button:hover{background:#e9e9e9}
+.primary{background:#222;color:white}
+.primary:hover{background:#444}
+.status-box{min-height:86px;line-height:1.55;font-size:14px}
+.status-box strong{display:block;margin-bottom:4px}
+.recovery-checklist{margin:10px 0 0;padding:0;list-style:none;display:grid;gap:7px}
+.recovery-checklist li{border:1px solid #ddd;background:#fafafa;padding:8px 9px;font-size:13px}
+.recovery-checklist li.done{border-color:#7cb986;background:#edf8ef}
+.recovery-checklist li.active{border-color:#d89a27;background:#fff7df}
+.recovery-command{display:block;margin-top:8px;padding:8px;background:#111;color:#e8e8e8;font-family:Consolas,"Courier New",monospace;font-size:12px}
+.summary-modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:9999;padding:24px}
+.summary-modal.show{display:flex}
+.summary-card{width:min(660px,92vw);max-height:82vh;overflow:auto;background:white;border:2px solid #222;box-shadow:0 20px 50px rgba(0,0,0,.35)}
+.summary-card h3{margin:0;padding:14px 18px;background:#222;color:white;font-size:17px}
+.summary-content{padding:18px;line-height:1.6}
+.summary-content ul{margin:8px 0 16px;padding-left:20px}
+.summary-actions{border-top:1px solid #ddd;padding:12px 18px;text-align:right}
+.log-list{list-style:none;padding:0;margin:0}
+.log-list li{border-left:4px solid #777;background:#f5f5f5;margin-bottom:8px;padding:9px 10px;font-size:13px;line-height:1.45}
+.log-list li.attack{border-left-color:#c62828}
+.log-list li.defense{border-left-color:#2e7d32}
+.log-list li.error{border-left-color:#ef6c00}
+.log-list li.scan{border-left-color:#1565c0}
+.log-time{display:block;color:#666;font-size:12px;margin-bottom:3px}
+</style>
+<link rel="stylesheet" href="assets/site-shell.css">
+</head>
+<body>
+
+<header class="site-header">
+    <a class="brand" href="index.html" aria-label="Web Security Simulation Lab หน้าแรก"><span class="brand-mark" aria-hidden="true">WS</span><span class="brand-name">Web Security Simulation Lab</span></a>
+    <nav class="navbar" aria-label="เมนูหลัก"><a href="index.html">Home</a><a href="index.html#path-title">Security Fundamentals</a><a class="active" href="simulation.html" aria-current="page">Simulation</a><a href="index.html#project-title">About</a></nav>
+</header>
+
+<div class="header">การจำลองเว็บขายสินค้า</div>
+
+<div class="lab-container">
+    <div class="lab-left">
+        <iframe id="shopFrame" src="labs/shop-site/index.html" title="เว็บขายสินค้าจำลอง"></iframe>
+    </div>
+
+    <aside class="lab-right">
+        <div class="panel">
+            <h3>Mission Console</h3>
+            <div class="panel-body">
+                <div class="badge-row">
+                    <span class="badge" id="roleBadge">Role: Attack</span>
+                    <span class="badge" id="stageBadge">Stage: Recon</span>
+                    <span class="badge">Target: Shop Site</span>
+                </div>
+
+                <label for="roleSelect">ฝ่ายปฏิบัติการ</label>
+                <select id="roleSelect">
+                    <option value="attack">โจมตี (Attack Operator)</option>
+                    <option value="defense">ป้องกัน (Security Developer)</option>
+                </select>
+
+                <label for="scenarioSelect">ลักษณะการจำลอง</label>
+                <select id="scenarioSelect"></select>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h3>Command Reference</h3>
+            <div class="panel-body">
+                <div class="command-help" id="commandHelp"></div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h3>Command Input</h3>
+            <div class="panel-body">
+                <label for="commandInput">พิมพ์คำสั่ง</label>
+                <textarea id="commandInput" spellcheck="false">scan shop --surface</textarea>
+
+                <label for="noteInput">Note / Evidence</label>
+                <input id="noteInput" value="ตรวจสอบจากหน้า login, cart และ checkout">
+
+                <div class="button-row">
+                    <button class="primary" id="runCommand" type="button">Run Command</button>
+                    <button id="clearLog" type="button">Clear Log</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h3>Situation Panel</h3>
+            <div class="panel-body status-box" id="statusBox">
+                <strong>ระบบพร้อมจำลอง</strong>
+                เลือกฝ่ายและลักษณะการจำลอง จากนั้นใช้คำสั่งใน Command Reference เพื่อบันทึกสถานการณ์ของเว็บขายสินค้า
+            </div>
+        </div>
+
+        <div class="panel">
+            <h3>Operation Log</h3>
+            <div class="panel-body">
+                <ul class="log-list" id="logList">
+                    <li>ยังไม่มีคำสั่งที่ถูกใช้งาน</li>
+                </ul>
+            </div>
+        </div>
+    </aside>
+</div>
+
+<div class="summary-modal" id="resetSummaryModal" role="dialog" aria-modal="true" aria-labelledby="resetSummaryTitle">
+    <div class="summary-card">
+        <h3 id="resetSummaryTitle">สรุปผลการจำลองก่อนรีเซ็ต</h3>
+        <div class="summary-content" id="resetSummaryContent"></div>
+        <div class="summary-actions">
+            <button class="primary" id="closeSummary" type="button">ปิดสรุป</button>
+        </div>
+    </div>
+</div>
+
+<script>
+const roleSelect = document.getElementById("roleSelect");
+const scenarioSelect = document.getElementById("scenarioSelect");
+const shopFrame = document.getElementById("shopFrame");
+const commandHelp = document.getElementById("commandHelp");
+const commandInput = document.getElementById("commandInput");
+const noteInput = document.getElementById("noteInput");
+const runCommand = document.getElementById("runCommand");
+const clearLog = document.getElementById("clearLog");
+const statusBox = document.getElementById("statusBox");
+const logList = document.getElementById("logList");
+const roleBadge = document.getElementById("roleBadge");
+const stageBadge = document.getElementById("stageBadge");
+const resetSummaryModal = document.getElementById("resetSummaryModal");
+const resetSummaryContent = document.getElementById("resetSummaryContent");
+const closeSummary = document.getElementById("closeSummary");
+const activeShopCommands = [];
+const incidentHistory = [];
+let recoveryStep = 0;
+
+const scenarios = {
+    attack:[
+        {
+            id:"customer-data",
+            label:"การเข้าถึงข้อมูลลูกค้า",
+            command:"attack customer-data --read",
+            title:"จำลองการเข้าถึงข้อมูลลูกค้า",
+            body:"สถานการณ์นี้จำลองว่าผู้โจมตีพยายามอ่านข้อมูลลูกค้าจากพื้นที่บัญชีหรือประวัติคำสั่งซื้อ ผลลัพธ์จะแสดงผ่านหน้าจอเว็บซ้อนที่ผิดปกติใน iframe"
+        },
+        {
+            id:"account-change",
+            label:"เข้าถึงบัญชีลูกค้าและเปลี่ยนข้อมูล",
+            command:"attack account --change-profile",
+            title:"จำลองการเปลี่ยนข้อมูลบัญชีลูกค้า",
+            body:"สถานการณ์นี้จำลองว่าผู้โจมตีเข้าไปเปลี่ยนชื่อ ที่อยู่ หรือข้อมูลติดต่อของลูกค้า หลังเข้าถึงบัญชีได้ โดยหลักฐานจะไปปรากฏในจอเว็บซ้อนแทนการแปะบนหน้าเว็บตรง ๆ"
+        },
+        {
+            id:"checkout-bypass",
+            label:"การข้ามขั้นตอนชำระเงิน",
+            command:"attack checkout --skip-payment",
+            title:"จำลองการข้ามขั้นตอนชำระเงิน",
+            body:"สถานการณ์นี้จำลองว่าผู้โจมตีพยายามทำให้คำสั่งซื้อไปถึงหน้าสรุปโดยไม่ผ่านลำดับตรวจสอบราคา การยืนยันตัวตน หรือการชำระเงินครบถ้วน แล้วแสดงสถานะ Payment Approved ผ่านหน้าจอซ้อน"
+        }
+    ],
+    defense:[
+        {
+            id:"price-validation",
+            label:"เปิดการตรวจสอบความถูกต้องของราคาสินค้า",
+            command:"defense price --validate",
+            title:"เปิดการตรวจสอบราคาสินค้า",
+            body:"ระบบจำลองบันทึกว่าฝ่ายป้องกันเปิดการตรวจสอบราคาสินค้า ยอดรวม ค่าจัดส่ง และยอดชำระก่อนอนุญาตให้ไปขั้นต่อไป"
+        },
+        {
+            id:"force-auth",
+            label:"เปิดการบังคับยืนยันตัวตน",
+            command:"defense auth --force",
+            title:"เปิดการบังคับยืนยันตัวตน",
+            body:"ระบบจำลองบันทึกว่าผู้ใช้ต้องผ่านการยืนยันตัวตนก่อนแก้ข้อมูลบัญชี ตะกร้า หรือข้อมูลจัดส่ง"
+        },
+        {
+            id:"order-sequence",
+            label:"บังคับการเรียงลำดับการตรวจสอบข้อมูลคำสั่งซื้อ",
+            command:"defense order --sequence",
+            title:"บังคับลำดับตรวจสอบคำสั่งซื้อ",
+            body:"ระบบจำลองบันทึกว่าคำสั่งซื้อต้องผ่านลำดับ cart > account > price validation > checkout summary ก่อนยืนยัน"
+        },
+        {
+            id:"recovery-reset",
+            label:"รีเซ็ตและกู้คืนสถานะร้านค้า",
+            command:"defense recovery --restore-shop",
+            title:"กู้คืนสถานะเว็บขายสินค้า",
+            body:"ฝ่ายป้องกันล้างอาการเว็บซ้อน ยกเลิกผลโจมตีที่ค้างอยู่ ตรวจคืนลำดับบัญชี-ตะกร้า-ชำระเงิน และทำให้ iframe กลับสู่สภาพปกติ"
+        }
+    ]
+};
+
+const commandReference = {
+    attack:[
+        { command:"scan shop --surface", note:"สำรวจจุดสำคัญของเว็บขายสินค้า เช่น login, cart, checkout" },
+        { command:"attack customer-data --read", note:"จำลองการเข้าถึงข้อมูลลูกค้า" },
+        { command:"attack account --change-profile", note:"จำลองการเข้าถึงบัญชีและเปลี่ยนข้อมูลลูกค้า" },
+        { command:"attack checkout --skip-payment", note:"จำลองการข้ามขั้นตอนชำระเงิน" }
+    ],
+    defense:[
+        { command:"scan shop --surface", note:"สำรวจพื้นที่เสี่ยงของร้านค้าออนไลน์" },
+        { command:"defense price --validate", note:"เปิดการตรวจสอบความถูกต้องของราคาสินค้า" },
+        { command:"defense auth --force", note:"บังคับยืนยันตัวตนก่อนแก้ข้อมูลสำคัญ" },
+        { command:"defense order --sequence", note:"บังคับลำดับตรวจสอบข้อมูลคำสั่งซื้อ" },
+        { command:"defense recovery --restore-shop", note:"เริ่มขั้นตอนกู้คืน ต้องยืนยันต่อหลายรอบ" },
+        { command:"confirm recovery --snapshot", note:"ยืนยันว่าตรวจ snapshot และบันทึกสภาพผิดปกติแล้ว" },
+        { command:"confirm recovery --rollback", note:"ยืนยันให้ย้อนค่าบัญชี ตะกร้า และลำดับชำระเงิน" },
+        { command:"confirm recovery --clear-session", note:"ยืนยันล้าง session จำลองและคืนหน้าเว็บ" }
+    ]
+};
+
+const recoveryCommands = [
+    {
+        command:"defense recovery --restore-shop",
+        title:"เริ่มขั้นตอนกู้คืนร้านค้า",
+        body:"ระบบยังไม่รีเซ็ตทันที ผู้ดูแลต้องตรวจหลักฐานก่อน เพื่อไม่ลบอาการผิดปกติก่อนเก็บข้อมูล"
+    },
+    {
+        command:"confirm recovery --snapshot",
+        title:"บันทึก snapshot และขอบเขตผลกระทบ",
+        body:"ยืนยันว่าเก็บสภาพหน้าจอซ้อน ผลข้อมูลลูกค้า บัญชีที่เปลี่ยน และสถานะชำระเงินที่ผิดลำดับแล้ว"
+    },
+    {
+        command:"confirm recovery --rollback",
+        title:"อนุญาต rollback ข้อมูลร้านค้า",
+        body:"ยืนยันให้ย้อนค่าที่เปลี่ยนกลับสู่ฐานข้อมูลหลัก เช่น โปรไฟล์ลูกค้า ตะกร้า และยอดชำระ"
+    },
+    {
+        command:"confirm recovery --clear-session",
+        title:"ล้าง session จำลองและคืนหน้าเว็บ",
+        body:"ยืนยันขั้นสุดท้ายเพื่อปิดหน้าจอซ้อน ล้างสถานะโจมตี/ป้องกัน และคืน iframe สู่หน้าปกติ"
+    }
+];
+
+function normalizeCommand(value){
+    return value.trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+function renderScenarios(options){
+    options = options || {};
+    const currentCommand = commandInput.value;
+    scenarioSelect.innerHTML = scenarios[roleSelect.value].map(function(item){
+        return '<option value="' + item.id + '">' + item.label + '</option>';
+    }).join("");
+    commandInput.value = options.preserveCommand ? currentCommand : scenarios[roleSelect.value][0].command;
+}
+
+function renderCommandReference(){
+    commandHelp.innerHTML = commandReference[roleSelect.value].map(function(item){
+        return "<code>" + item.command + "</code><div class=\"command-note\">" + item.note + "</div>";
+    }).join("");
+}
+
+function updateBadges(){
+    roleBadge.textContent = roleSelect.value === "attack" ? "Role: Attack" : "Role: Defense";
+    stageBadge.textContent = roleSelect.value === "attack" ? "Stage: Attack Simulation" : "Stage: Defense Simulation";
+}
+
+function selectedScenario(){
+    return scenarios[roleSelect.value].find(function(item){
+        return item.id === scenarioSelect.value;
+    }) || scenarios[roleSelect.value][0];
+}
+
+function findScenarioByCommand(command){
+    for(const role of Object.keys(scenarios)){
+        const scenario = scenarios[role].find(function(item){
+            return item.command === command;
+        });
+        if(scenario){
+            return { role:role, scenario:scenario };
+        }
+    }
+
+    if(recoveryCommands.some(function(item){ return item.command === command; })){
+        return {
+            role:"defense",
+            scenario:scenarios.defense.find(function(item){ return item.id === "recovery-reset"; })
+        };
+    }
+
+    return null;
+}
+
+function syncScenarioFromCommand(){
+    const command = normalizeCommand(commandInput.value);
+    const match = findScenarioByCommand(command);
+    if(!match || !match.scenario) return;
+
+    if(roleSelect.value !== match.role){
+        roleSelect.value = match.role;
+        renderScenarios({ preserveCommand:true });
+        renderCommandReference();
+        updateBadges();
+    }
+
+    scenarioSelect.value = match.scenario.id;
+}
+
+function runCurrentCommand(){
+    const command = normalizeCommand(commandInput.value);
+    syncScenarioFromCommand();
+
+    if(command === "scan shop --surface"){
+        recoveryStep = 0;
+        reportStatus("สแกนพื้นผิวเว็บขายสินค้าแล้ว", "พบพื้นที่สำคัญสำหรับจำลองคือหน้าเข้าสู่ระบบ บัญชีลูกค้า ตะกร้า รายละเอียดสินค้า และ checkout summary", "scan");
+        return;
+    }
+
+    if(recoveryCommands.some(function(item){ return item.command === command; })){
+        runRecoveryCommand(command);
+        return;
+    }
+
+    const scenario = selectedScenario();
+    if(command !== scenario.command){
+        recoveryStep = 0;
+        reportStatus("คำสั่งไม่ตรงกับสถานการณ์", "ตรวจ Command Reference หรือเลือกสถานการณ์ให้ตรงกับคำสั่งที่ต้องการจำลอง", "error");
+        return;
+    }
+
+    recoveryStep = 0;
+    sendToShopFrame(commandToAction(command));
+    reportStatus(scenario.title, scenario.body + "<br><strong>หลักฐาน/หมายเหตุ:</strong> " + escapeHtml(noteInput.value), roleSelect.value);
+}
+
+function runRecoveryCommand(command){
+    if(command === recoveryCommands[0].command && recoveryStep > 0){
+        recoveryStep = 0;
+    }
+
+    if(command !== recoveryCommands[recoveryStep].command){
+        reportStatus("ลำดับยืนยันกู้คืนไม่ถูกต้อง", "คำสั่งกู้คืนต้องทำตาม checklist ทีละขั้น เพื่อเลียนแบบการป้องกันที่ต้องเก็บหลักฐานก่อน rollback" + renderRecoveryChecklist(recoveryStep), "error");
+        return;
+    }
+
+    const current = recoveryCommands[recoveryStep];
+    recoveryStep += 1;
+    incidentHistory.push({
+        action:"RECOVERY_STEP",
+        command:command,
+        title:current.title,
+        time:new Date().toLocaleTimeString("th-TH")
+    });
+
+    if(recoveryStep >= recoveryCommands.length){
+        const summaryHtml = buildShopResetSummary();
+        activeShopCommands.length = 0;
+        shopFrame.contentWindow.postMessage({ action:"SHOP_SIM_RESET" }, "*");
+        showResetSummary(summaryHtml);
+        incidentHistory.length = 0;
+        reportStatus("กู้คืนเว็บขายสินค้าเสร็จสิ้น", current.body + "<br>" + renderRecoveryChecklist(recoveryCommands.length), "defense");
+        recoveryStep = 0;
+        commandInput.value = "scan shop --surface";
+        return;
+    }
+
+    commandInput.value = "";
+    reportStatus(current.title, current.body + "<br>" + renderRecoveryChecklist(recoveryStep) + '<code class="recovery-command">คำสั่งถัดไป: ' + recoveryCommands[recoveryStep].command + "</code>", "defense");
+}
+
+function renderRecoveryChecklist(activeIndex){
+    return '<ul class="recovery-checklist">' + recoveryCommands.map(function(item, index){
+        const cls = index < activeIndex ? "done" : index === activeIndex ? "active" : "";
+        const prefix = index < activeIndex ? "เสร็จแล้ว" : index === activeIndex ? "กำลังรอ" : "รอคิว";
+        return '<li class="' + cls + '"><strong>' + prefix + '</strong> ' + item.command + '<br><span>' + item.body + '</span></li>';
+    }).join("") + "</ul>";
+}
+
+function commandToAction(command){
+    const map = {
+        "attack customer-data --read":"ATTACK_CUSTOMER_DATA",
+        "attack account --change-profile":"ATTACK_ACCOUNT_CHANGE",
+        "attack checkout --skip-payment":"ATTACK_CHECKOUT_BYPASS",
+        "defense price --validate":"DEFENSE_PRICE_VALIDATE",
+        "defense auth --force":"DEFENSE_AUTH_FORCE",
+        "defense order --sequence":"DEFENSE_ORDER_SEQUENCE",
+        "defense recovery --restore-shop":"SHOP_SIM_RESET"
+    };
+    return map[command] || "";
+}
+
+function sendToShopFrame(action){
+    if(!action) return;
+    incidentHistory.push({
+        action:action,
+        scenario:selectedScenario().id,
+        role:roleSelect.value,
+        time:new Date().toLocaleTimeString("th-TH")
+    });
+    if(!activeShopCommands.includes(action)){
+        activeShopCommands.push(action);
+    }
+    shopFrame.contentWindow.postMessage({ action:action }, "*");
+}
+
+function buildShopResetSummary(){
+    const attacks = incidentHistory.filter(function(item){
+        return item.action.startsWith("ATTACK");
+    });
+    const defenses = incidentHistory.filter(function(item){
+        return item.action.startsWith("DEFENSE");
+    });
+    const recoverySteps = incidentHistory.filter(function(item){
+        return item.action === "RECOVERY_STEP";
+    });
+
+    const impactItems = attacks.length ? attacks.map(describeShopAttack).join("") : "<li>ไม่พบคำสั่งโจมตีในรอบนี้</li>";
+    const defenseItems = defenses.length ? defenses.map(describeShopDefense).join("") : "<li>ยังไม่มีคำสั่งป้องกันก่อนเข้าสู่ขั้นกู้คืน</li>";
+    const recoveryItems = recoverySteps.length ? recoverySteps.map(function(item){
+        return "<li>" + escapeHtml(item.title) + " <span class=\"log-time\">" + escapeHtml(item.time) + "</span></li>";
+    }).join("") : "<li>ยังไม่ได้ทำขั้นตอนกู้คืนครบถ้วน</li>";
+
+    const controlledItems = [];
+    if(attacks.some(function(item){ return item.action === "ATTACK_CUSTOMER_DATA"; })) controlledItems.push("แยกเหตุการณ์ข้อมูลลูกค้าถูกเปิดดูออกจากหน้าเว็บปกติ และบันทึกเป็นหลักฐานในหน้าจอซ้อน");
+    if(attacks.some(function(item){ return item.action === "ATTACK_ACCOUNT_CHANGE"; })) controlledItems.push("ตรวจพบข้อมูลบัญชีหรือที่อยู่จัดส่งที่ถูกแก้ และเตรียมย้อนกลับสู่ค่าเดิม");
+    if(attacks.some(function(item){ return item.action === "ATTACK_CHECKOUT_BYPASS"; })) controlledItems.push("ตรวจพบลำดับชำระเงินผิดปกติ และบังคับให้คำสั่งซื้อกลับไปผ่านขั้นตรวจสอบ");
+    if(defenses.some(function(item){ return item.action === "DEFENSE_PRICE_VALIDATE"; })) controlledItems.push("เปิดตรวจสอบราคา ยอดรวม ค่าจัดส่ง และยอดชำระ");
+    if(defenses.some(function(item){ return item.action === "DEFENSE_AUTH_FORCE"; })) controlledItems.push("เปิดบังคับยืนยันตัวตนก่อนดูหรือแก้ข้อมูลลูกค้า");
+    if(defenses.some(function(item){ return item.action === "DEFENSE_ORDER_SEQUENCE"; })) controlledItems.push("เปิดการตรวจลำดับ cart > account > price validation > checkout summary");
+
+    return `
+        <p><strong>ผลกระทบที่ตรวจพบในรอบนี้</strong></p>
+        <ul>${impactItems}</ul>
+        <p><strong>ขั้นตอนป้องกันที่ดำเนินการ</strong></p>
+        <ul>${defenseItems}</ul>
+        <p><strong>ขั้นตอนกู้คืนก่อนรีเซ็ต</strong></p>
+        <ul>${recoveryItems}</ul>
+        <p><strong>สิ่งที่ป้องกันหรือควบคุมได้</strong></p>
+        <ul>${controlledItems.length ? controlledItems.map(function(text){ return "<li>" + text + "</li>"; }).join("") : "<li>ยังไม่ได้เปิดมาตรการป้องกันเฉพาะทางก่อนรีเซ็ต</li>"}</ul>
+        <p><strong>สถานะหลังคำสั่ง recovery</strong><br>เว็บขายสินค้าถูกล้างกลับสู่สภาพเริ่มต้น หน้าจอเว็บซ้อนถูกปิด ลำดับขั้นกู้คืนถูกเริ่มใหม่ และประวัติคำสั่งของรอบนี้ถูกล้างหลังแสดงสรุป</p>
+    `;
+}
+
+function describeShopAttack(item){
+    const names = {
+        ATTACK_CUSTOMER_DATA:"เข้าถึงข้อมูลลูกค้า: ข้อมูลลูกค้าปรากฏผ่านหน้าจอเว็บซ้อน",
+        ATTACK_ACCOUNT_CHANGE:"แก้ไขบัญชีลูกค้า: ชื่อ ที่อยู่ หรืออีเมลถูกเปลี่ยนเป็นค่าผิดปกติ",
+        ATTACK_CHECKOUT_BYPASS:"ข้ามขั้นตอนชำระเงิน: คำสั่งซื้อเข้าสถานะ Payment Approved โดยไม่ผ่านลำดับตรวจสอบครบ"
+    };
+    return "<li>" + (names[item.action] || item.action) + " <span class=\"log-time\">" + escapeHtml(item.time) + "</span></li>";
+}
+
+function describeShopDefense(item){
+    const names = {
+        DEFENSE_PRICE_VALIDATE:"price validate: ตรวจราคาสินค้า ยอดรวม และค่าจัดส่ง",
+        DEFENSE_AUTH_FORCE:"auth force: บังคับยืนยันตัวตนก่อนแก้ข้อมูลสำคัญ",
+        DEFENSE_ORDER_SEQUENCE:"order sequence: บังคับลำดับตรวจสอบคำสั่งซื้อ"
+    };
+    return "<li>" + (names[item.action] || item.action) + " <span class=\"log-time\">" + escapeHtml(item.time) + "</span></li>";
+}
+
+function showResetSummary(html){
+    resetSummaryContent.innerHTML = html;
+    resetSummaryModal.classList.add("show");
+}
+
+function reportStatus(title, body, type){
+    statusBox.innerHTML = "<strong>" + title + "</strong>" + body;
+    addLog(title, body, type);
+}
+
+function addLog(title, body, type){
+    if(logList.children.length === 1 && logList.children[0].textContent.includes("ยังไม่มี")){
+        logList.innerHTML = "";
+    }
+    const item = document.createElement("li");
+    item.className = type || "";
+    item.innerHTML = '<span class="log-time">' + new Date().toLocaleTimeString("th-TH") + '</span><strong>' + title + '</strong><br>' + body;
+    logList.prepend(item);
+}
+
+function escapeHtml(value){
+    const div = document.createElement("div");
+    div.textContent = value;
+    return div.innerHTML;
+}
+
+roleSelect.addEventListener("change", function(){
+    recoveryStep = 0;
+    renderScenarios();
+    renderCommandReference();
+    updateBadges();
+});
+
+scenarioSelect.addEventListener("change", function(){
+    recoveryStep = 0;
+    commandInput.value = selectedScenario().command;
+});
+
+commandInput.addEventListener("input", syncScenarioFromCommand);
+
+runCommand.addEventListener("click", runCurrentCommand);
+
+clearLog.addEventListener("click", function(){
+    logList.innerHTML = "<li>ยังไม่มีคำสั่งที่ถูกใช้งาน</li>";
+    statusBox.innerHTML = "<strong>ล้างบันทึกแล้ว</strong>สถานการณ์ใน panel ถูกล้าง แต่เว็บใน iframe ยังอยู่หน้าเดิม";
+});
+
+closeSummary.addEventListener("click", function(){
+    resetSummaryModal.classList.remove("show");
+});
+
+resetSummaryModal.addEventListener("click", function(event){
+    if(event.target === resetSummaryModal){
+        resetSummaryModal.classList.remove("show");
+    }
+});
+
+shopFrame.addEventListener("load", function(){
+    activeShopCommands.forEach(function(action){
+        shopFrame.contentWindow.postMessage({ action:action }, "*");
+    });
+});
+
+renderScenarios();
+renderCommandReference();
+updateBadges();
+</script>
+</body>
+</html>

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GreenNest - สินค้า</title>
+<link rel="stylesheet" href="shop.css">
+</head>
+<body>
+<header class="site-header">
+    <nav class="nav">
+        <div class="menu-icon"><span></span><span></span><span></span></div>
+        <a class="logo-mark" href="index.html" aria-label="GreenNest"><span></span></a>
+        <a class="optional" href="products.html">สินค้า</a>
+        <a class="optional" href="login.html">เข้าสู่ระบบ</a>
+        <a class="optional" href="cart.html">ตะกร้า</a>
+        <a class="cart-icon" href="cart.html" aria-label="ตะกร้า">C</a>
+    </nav>
+    <div class="subline"></div>
+</header>
+
+<main class="page">
+    <div class="category-tabs" aria-label="หมวดสินค้า">
+        <button class="active" type="button" data-filter="all">ทั้งหมด</button>
+        <button type="button" data-filter="home">ของใช้บ้าน</button>
+        <button type="button" data-filter="work">โต๊ะทำงาน</button>
+        <button type="button" data-filter="travel">พกพา</button>
+        <button type="button" data-filter="care">ดูแลตัวเอง</button>
+    </div>
+
+    <div class="product-grid" id="productGrid"></div>
+</main>
+
+<script src="shop-data.js"></script>
+<script>
+const productGrid = document.getElementById("productGrid");
+const productEntries = Object.entries(window.ShopProducts);
+
+productGrid.innerHTML = productEntries.map(function(entry){
+    const id = entry[0];
+    const product = entry[1];
+    return `
+        <a class="product-card" data-category="${product.categoryId}" href="product-detail.html?id=${id}">
+            <div class="product-photo"><img src="${product.image}" alt="${product.name}"></div>
+            <div class="product-title">${product.name}</div>
+            <p class="muted">${product.short}</p>
+            <div class="price">${window.formatBaht(product.price)}</div>
+        </a>
+    `;
+}).join("");
+
+const buttons = document.querySelectorAll(".category-tabs button");
+const cards = document.querySelectorAll(".product-card");
+
+buttons.forEach(function(button){
+    button.addEventListener("click", function(){
+        const filter = button.dataset.filter;
+        buttons.forEach(function(item){ item.classList.remove("active"); });
+        button.classList.add("active");
+        cards.forEach(function(card){
+            card.style.display = filter === "all" || card.dataset.category === filter ? "" : "none";
+        });
+    });
+});
+</script>
+<script src="shop-sim.js"></script>
+<script src="../challenge-bridge.js"></script>
+</body>
+</html>
