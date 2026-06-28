@@ -1,6 +1,7 @@
 const SHOP_SIM_KEY = "greenNestShopSimulation";
 const SHOP_ATTACK_POS_KEY = "greenNestShopAttackMirrorPosition";
 const SHOP_DEFENSE_POS_KEY = "greenNestShopDefenseMirrorPosition";
+const SHOP_SIM_STORAGE = window.sessionStorage;
 
 document.addEventListener("DOMContentLoaded", function(){
     injectShopSimStyles();
@@ -36,21 +37,34 @@ window.addEventListener("message", function(event){
     }
 
     if(data.action === "SHOP_SIM_RESET"){
-        localStorage.removeItem(SHOP_SIM_KEY);
+        clearSimulationState();
         clearShopSimulation();
     }
 });
 
 function getSimulationState(){
     try{
-        return JSON.parse(localStorage.getItem(SHOP_SIM_KEY)) || { attacks:[], defenses:[] };
+        return JSON.parse(SHOP_SIM_STORAGE.getItem(SHOP_SIM_KEY)) || { attacks:[], defenses:[] };
     }catch(error){
         return { attacks:[], defenses:[] };
     }
 }
 
 function setSimulationState(state){
-    localStorage.setItem(SHOP_SIM_KEY, JSON.stringify(state));
+    SHOP_SIM_STORAGE.setItem(SHOP_SIM_KEY, JSON.stringify(state));
+}
+
+function clearSimulationState(){
+    SHOP_SIM_STORAGE.removeItem(SHOP_SIM_KEY);
+    SHOP_SIM_STORAGE.removeItem(SHOP_ATTACK_POS_KEY);
+    SHOP_SIM_STORAGE.removeItem(SHOP_DEFENSE_POS_KEY);
+    try{
+        window.localStorage.removeItem(SHOP_SIM_KEY);
+        window.localStorage.removeItem(SHOP_ATTACK_POS_KEY);
+        window.localStorage.removeItem(SHOP_DEFENSE_POS_KEY);
+    }catch(error){
+        return;
+    }
 }
 
 function addSimulationState(group, value){
@@ -255,7 +269,7 @@ function animateDefenseSteps(mirror){
 
 function restoreMirrorPosition(mirror, storageKey){
     try{
-        const saved = JSON.parse(localStorage.getItem(storageKey));
+        const saved = JSON.parse(SHOP_SIM_STORAGE.getItem(storageKey));
         if(!saved) return;
         mirror.style.left = saved.left + "px";
         mirror.style.top = saved.top + "px";
@@ -311,7 +325,7 @@ function enableMirrorDrag(mirror, storageKey){
         dragging = false;
         mirror.classList.remove("dragging");
         const rect = mirror.getBoundingClientRect();
-        localStorage.setItem(storageKey, JSON.stringify({ left:Math.round(rect.left), top:Math.round(rect.top) }));
+        SHOP_SIM_STORAGE.setItem(storageKey, JSON.stringify({ left:Math.round(rect.left), top:Math.round(rect.top) }));
     }
 
     handle.addEventListener("mousedown", startDrag);

@@ -1,4 +1,5 @@
 const LAB_STATE_KEY = "newsLabSimulationState";
+const LAB_STORAGE = window.sessionStorage;
 
 let originalArticle = "";
 let defenseMode = false;
@@ -51,7 +52,7 @@ window.addEventListener("message", function(event){
 
     if(data.action === "DEFENSE_RESTORE"){
         defenseMode = true;
-        localStorage.removeItem(LAB_STATE_KEY);
+        clearStoredState();
         setDefenseMode(true);
         restorePage();
         addForensicNote("verified restore: content baseline restored and ad slot cleared");
@@ -59,7 +60,7 @@ window.addEventListener("message", function(event){
 
     if(data.action === "RESET"){
         defenseMode = false;
-        localStorage.removeItem(LAB_STATE_KEY);
+        clearStoredState();
         setDefenseMode(false);
         restorePage();
     }
@@ -81,14 +82,23 @@ function bindCommentForm(){
 
 function getState(){
     try{
-        return JSON.parse(localStorage.getItem(LAB_STATE_KEY)) || { attacks:[], defense:false };
+        return JSON.parse(LAB_STORAGE.getItem(LAB_STATE_KEY)) || { attacks:[], defense:false };
     }catch(error){
         return { attacks:[], defense:false };
     }
 }
 
 function setState(state){
-    localStorage.setItem(LAB_STATE_KEY, JSON.stringify(state));
+    LAB_STORAGE.setItem(LAB_STATE_KEY, JSON.stringify(state));
+}
+
+function clearStoredState(){
+    LAB_STORAGE.removeItem(LAB_STATE_KEY);
+    try{
+        window.localStorage.removeItem(LAB_STATE_KEY);
+    }catch(error){
+        return;
+    }
 }
 
 function setDefenseMode(value){

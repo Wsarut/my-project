@@ -1,6 +1,7 @@
 (function(){
     const STORAGE_KEY = "stagepassTicketSimulation";
     const DISMISSED_KEY = "stagepassTicketDismissedWindows";
+    const SIM_STORAGE = window.sessionStorage;
     const DEFAULT_STATE = {
         attackLockBypass:false,
         attackBotBurst:false,
@@ -11,19 +12,24 @@
 
     function loadState(){
         try{
-            return Object.assign({}, DEFAULT_STATE, JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"));
+            return Object.assign({}, DEFAULT_STATE, JSON.parse(SIM_STORAGE.getItem(STORAGE_KEY) || "{}"));
         }catch(error){
             return Object.assign({}, DEFAULT_STATE);
         }
     }
 
     function saveState(state){
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        SIM_STORAGE.setItem(STORAGE_KEY, JSON.stringify(state));
     }
 
     function clearState(){
-        localStorage.removeItem(STORAGE_KEY);
-        sessionStorage.removeItem(DISMISSED_KEY);
+        SIM_STORAGE.removeItem(STORAGE_KEY);
+        SIM_STORAGE.removeItem(DISMISSED_KEY);
+        try{
+            window.localStorage.removeItem(STORAGE_KEY);
+        }catch(error){
+            return;
+        }
     }
 
     function escapeHtml(value){
@@ -58,7 +64,7 @@
 
     function dismissedWindows(){
         try{
-            return JSON.parse(sessionStorage.getItem(DISMISSED_KEY) || "[]");
+            return JSON.parse(SIM_STORAGE.getItem(DISMISSED_KEY) || "[]");
         }catch(error){
             return [];
         }
@@ -68,7 +74,7 @@
         if(!id) return;
         const list = dismissedWindows().filter(function(item){ return item !== id; });
         if(dismissed) list.push(id);
-        sessionStorage.setItem(DISMISSED_KEY, JSON.stringify(list));
+        SIM_STORAGE.setItem(DISMISSED_KEY, JSON.stringify(list));
     }
 
     function isWindowDismissed(id){

@@ -148,15 +148,16 @@ window.ShopProducts = {
 
 window.ShopCart = {
     key:"greennestCart",
+    storage:window.sessionStorage,
     read:function(){
         try{
-            return JSON.parse(localStorage.getItem(this.key)) || [];
+            return JSON.parse(this.storage.getItem(this.key)) || [];
         }catch(error){
             return [];
         }
     },
     write:function(items){
-        localStorage.setItem(this.key, JSON.stringify(items));
+        this.storage.setItem(this.key, JSON.stringify(items));
     },
     add:function(id, quantity, delivery){
         const items = this.read();
@@ -173,7 +174,12 @@ window.ShopCart = {
         this.write(items);
     },
     clear:function(){
-        localStorage.removeItem(this.key);
+        this.storage.removeItem(this.key);
+        try{
+            window.localStorage.removeItem(this.key);
+        }catch(error){
+            return;
+        }
     },
     totals:function(){
         const items = this.read();
