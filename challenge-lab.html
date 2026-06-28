@@ -1750,17 +1750,17 @@ body::after{
             <h2>ข่าวสาร / page integrity</h2>
             <p class="sheet-sub">เว็บข่าวโดนเจาะแบบไม่พังทันที มักเริ่มจากคำพูดผิดโทนหรือหน้าแรกเล่าเรื่องแปลก</p>
             <div class="keyword-row">
-                <span>scan</span><span>content</span><span>baseline</span><span>restore</span>
+                <span>scan</span><span>article</span><span>homepage</span><span>baseline</span>
             </div>
             <div class="manual-scenario">
                 <h3>case A: เนื้อหาข่าวผิดปกติ</h3>
                 <p>เริ่มจากหัวข้อหรือย่อหน้าบางจุดเปลี่ยนน้ำเสียง ลองดูบทความหลักก่อนดูหน้าอื่น</p>
-                <div class="manual-route"><span>scan surface</span> → <span>inspect content</span> → <span>contain content</span> → <span>verify baseline</span> → <span>confirm stable</span> → <span>restore clean</span></div>
+                <div class="manual-route"><span>scan surface</span> → <span>inspect content</span> → <span>contain article</span> → <span>verify editorial-baseline</span> → <span>confirm stable</span> → <span>restore clean</span></div>
             </div>
             <div class="manual-scenario">
                 <h3>case B: หน้าแรกถูกเปลี่ยนเนื้อหา</h3>
                 <p>ถ้า hero, ข่าวด่วน, หรือการ์ดข่าวหลายจุดเปลี่ยนพร้อมกัน ให้คิดถึง homepage modules</p>
-                <div class="manual-route"><span>scan surface</span> → <span>inspect content</span> → <span>contain content</span> → <span>verify baseline</span> → <span>confirm stable</span> → <span>restore clean</span></div>
+                <div class="manual-route"><span>scan surface</span> → <span>inspect homepage</span> → <span>contain homepage</span> → <span>verify publish-cache</span> → <span>confirm stable</span> → <span>restore clean</span></div>
             </div>
             <p class="scribble-note"><span class="crossed">อย่ารีเซ็ตทันที</span> ก่อนรู้ว่าหน้าไหนถูกเปลี่ยน ตรวจหน้าแรกก่อน แล้วค่อยไล่หมวดข่าว</p>
         </section>
@@ -1961,13 +1961,13 @@ const targetPool = [
                 id:"news-content-drift",
                 label:"content integrity breach",
                 clue:"ร่องรอยเริ่มจากเนื้อหาบางย่อหน้าหรือหัวข้อข่าวที่น้ำเสียงเปลี่ยนไป",
-                defense:["sentinel scan --surface current", "sentinel contain --scope content", "sentinel verify --source baseline", "sentinel confirm --state stable", "sentinel restore --clean"]
+                defense:["sentinel scan --surface current", "sentinel contain --scope article", "sentinel verify --source editorial-baseline", "sentinel confirm --state stable", "sentinel restore --clean"]
             },
             {
                 id:"news-homepage-drift",
                 label:"homepage narrative drift",
                 clue:"หน้าแรกและแถบข่าวด่วนอาจเริ่มเล่าเรื่องไม่ตรงกับโทนข่าวปกติ",
-                defense:["sentinel scan --surface current", "sentinel contain --scope content", "sentinel verify --source baseline", "sentinel confirm --state stable", "sentinel restore --clean"]
+                defense:["sentinel scan --surface current", "sentinel contain --scope homepage", "sentinel verify --source publish-cache", "sentinel confirm --state stable", "sentinel restore --clean"]
             }
         ]
     },
@@ -2713,7 +2713,13 @@ function dataDetailCells(keyword){
                 ["publish route", scenarioId === "news-homepage-drift" ? "homepage module write / cache path" : "article body write / publish queue"],
                 ["baseline hash", challengeState.stage >= 2 ? "mismatch detected" : "waiting for scan"],
                 ["visible clue", "headline, breaking feed, or article tone"],
-                ["safe action", "contain content -> verify baseline"]
+                ["safe action", "contain article -> verify editorial-baseline"]
+            ],
+            homepage:[
+                ["homepage module", scenarioId === "news-homepage-drift" ? "hero/feed/cache write path" : "normal watch"],
+                ["publish cache", challengeState.stage >= 2 ? "module copy mismatch" : "waiting for scan"],
+                ["visible clue", "hero, breaking strip, and news cards move together"],
+                ["safe action", "contain homepage -> verify publish-cache"]
             ],
             baseline:[
                 ["baseline source", "editor approved copy"],
@@ -2818,6 +2824,7 @@ function focusDataMap(keyword){
     }
     const focusTable = {
         content:["content", "publish", "baseline", "feed"],
+        homepage:["site", "feed", "cache", "publish"],
         data:["customer", "auth", "audit"],
         customer:["customer", "auth", "audit"],
         checkout:["cart", "order", "payment", "price"],
@@ -2828,7 +2835,7 @@ function focusDataMap(keyword){
         baseline:["baseline", "monitor", "ledger", "price"]
     };
     const allowedByTarget = {
-        news:["content", "baseline"],
+        news:["content", "homepage", "baseline"],
         shop:["data", "customer", "checkout", "order"],
         ticket:["inventory", "ticket", "identity"]
     };
@@ -3269,7 +3276,8 @@ function setupChallengePanels(){
                 <div class="toolkit-group-body">
                     <code class="toolkit-line">sentinel map --open <span>/ เปิดจอแผนผังข้อมูลภายใน</span></code>
                     <code class="toolkit-line">sentinel map --back <span>/ ย้อนจากหน้า data view กลับแผนผัง</span></code>
-                    <code class="toolkit-line">sentinel map --focus content <span>/ โฟกัส publish/content ของเว็บข่าว</span></code>
+                    <code class="toolkit-line">sentinel map --focus content <span>/ โฟกัส article/content ของเว็บข่าว</span></code>
+                    <code class="toolkit-line">sentinel map --focus homepage <span>/ โฟกัส hero/feed/cache ของหน้าแรกข่าว</span></code>
                     <code class="toolkit-line">sentinel map --focus customer <span>/ เปิด customer profile data stream</span></code>
                     <code class="toolkit-line">sentinel map --focus checkout <span>/ โฟกัสลำดับตะกร้า/คำสั่งซื้อ</span></code>
                     <code class="toolkit-line">sentinel map --focus inventory <span>/ โฟกัส restock และ ticket ledger</span></code>
@@ -3279,9 +3287,12 @@ function setupChallengePanels(){
             <details class="toolkit-group">
                 <summary>Controls</summary>
                 <div class="toolkit-group-body">
-                    <code class="toolkit-line">sentinel contain --scope content <span>/ จำกัดการแก้เนื้อหา</span></code>
+                    <code class="toolkit-line">sentinel contain --scope article <span>/ จำกัดการแก้บทความข่าวเฉพาะหน้า</span></code>
+                    <code class="toolkit-line">sentinel contain --scope homepage <span>/ จำกัดการเขียนโมดูลหน้าแรก</span></code>
                     <code class="toolkit-line">sentinel contain --scope data <span>/ ปิดทางข้อมูลลูกค้ารั่ว</span></code>
                     <code class="toolkit-line">sentinel contain --scope checkout <span>/ กั้นลำดับคำสั่งซื้อผิดปกติ</span></code>
+                    <code class="toolkit-line">sentinel verify --source editorial-baseline <span>/ เทียบบทความกับต้นฉบับกองบรรณาธิการ</span></code>
+                    <code class="toolkit-line">sentinel verify --source publish-cache <span>/ เทียบหน้าแรกกับ cache เผยแพร่ล่าสุด</span></code>
                     <code class="toolkit-line">sentinel verify --source baseline <span>/ เทียบกับข้อมูลตั้งต้น</span></code>
                     <code class="toolkit-line">sentinel verify --source server-price <span>/ ยืนยันราคาจากฝั่งระบบ</span></code>
                     <code class="toolkit-line">sentinel sync --inventory <span>/ ซิงก์จำนวนตั๋วกับรายการจริง</span></code>
@@ -3348,7 +3359,7 @@ function scenarioNeeds(command){
 
 const scenarioEvidenceFocus = {
     "news-content-drift":"content",
-    "news-homepage-drift":"content",
+    "news-homepage-drift":"homepage",
     "shop-data-leak":"customer",
     "shop-order-anomaly":"checkout",
     "ticket-oversell":"inventory",
@@ -3448,6 +3459,7 @@ function knownChallengeCommands(){
         "sentinel map --open",
         "sentinel map --back",
         "sentinel map --focus content",
+        "sentinel map --focus homepage",
         "sentinel map --focus customer",
         "sentinel map --focus checkout",
         "sentinel map --focus inventory",
