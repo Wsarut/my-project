@@ -5,14 +5,24 @@
 .site-header .brand-mark{width:30px;height:30px;display:grid;place-items:center;border:1px solid rgba(116,255,155,.55);color:var(--shell-green);font:700 12px Consolas,"Courier New",monospace}
 .site-header .brand-name{font-size:14px}
 .site-header .navbar{display:flex;align-items:center;gap:4px;background:transparent}
-.site-header .navbar>a{min-height:62px;display:inline-flex;align-items:center;padding:0 15px;color:#dce3df;background:transparent;text-decoration:none;border-bottom:3px solid transparent;font-size:14px}
+.site-header .navbar>a,.site-header .navbar>.nav-disabled{min-height:62px;display:inline-flex;align-items:center;padding:0 15px;color:#dce3df;background:transparent;text-decoration:none;border-bottom:3px solid transparent;font-size:14px}
+.site-header .navbar>.nav-disabled{cursor:default;opacity:.72}
 .site-header .navbar>a:hover,.site-header .navbar>a.active{color:#fff;background:transparent;border-bottom-color:var(--shell-green)}
+.site-header .navbar>a.challenge-entry{min-height:38px;margin-left:12px;padding:8px 13px;gap:8px;color:var(--shell-green);border:1px solid rgba(116,255,155,.54);background:linear-gradient(180deg,#101813,#050807);box-shadow:0 0 0 1px rgba(116,255,155,.08) inset,0 0 18px rgba(116,255,155,.13);font:700 12px Consolas,"Courier New",monospace;opacity:.82;position:relative;overflow:hidden;animation:challengeWiggle 4.8s infinite}
+.site-header .navbar>a.challenge-entry:hover{opacity:1;color:#dfffe8;border-color:rgba(116,255,155,.86);border-bottom-color:rgba(116,255,155,.86);background:#07100b;box-shadow:0 0 0 1px rgba(116,255,155,.18) inset,0 0 26px rgba(116,255,155,.32);text-shadow:0 0 10px rgba(116,255,155,.78)}
+.site-header .challenge-entry::before{content:"";position:absolute;inset:-40% auto -40% -55%;width:42%;background:linear-gradient(90deg,transparent,rgba(116,255,155,.26),transparent);transform:skewX(-18deg);opacity:0}
+.site-header .challenge-entry:hover::before{animation:challengeScan .82s ease-out}
+.site-header .challenge-entry strong{width:20px;height:20px;display:grid;place-items:center;border:1px solid rgba(116,255,155,.48);background:rgba(116,255,155,.08);font-size:14px;line-height:1}
+@keyframes challengeWiggle{0%,88%,100%{transform:translateY(0) rotate(0deg)}90%{transform:translateY(-1px) rotate(-2deg)}92%{transform:translateY(1px) rotate(2deg)}94%{transform:translateY(-1px) rotate(-1deg)}}
+@keyframes challengeScan{0%{left:-55%;opacity:0}20%{opacity:1}100%{left:112%;opacity:0}}
 .lab-titlebar,.site-header+.header{min-height:56px;display:flex;align-items:center;justify-content:center;gap:12px;padding:12px 24px;border-bottom:1px solid var(--shell-line);background:#fff;color:var(--shell-ink);font-size:18px;font-weight:700}
 .lab-title-code{color:#176b43;font:700 11px Consolas,"Courier New",monospace}
 body>.lab-container,body>main.lab-container{height:calc(100vh - 118px)}
 @media (max-width:900px){
     .site-header{align-items:flex-start;flex-direction:column;gap:0;padding:0 20px 10px}
     .site-header .navbar{width:100%;overflow-x:auto}
-    .site-header .navbar>a{min-height:44px;padding:0 12px;white-space:nowrap}
+    .site-header .navbar>a,.site-header .navbar>.nav-disabled{min-height:44px;padding:0 12px;white-space:nowrap}
+    .site-header .navbar>a.challenge-entry{min-width:46px;justify-content:center;padding:8px 10px}
+    .site-header .navbar>a.challenge-entry span{display:none}
     body>.lab-container,body>main.lab-container{height:calc(100vh - 162px)}
 }

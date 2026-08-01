@@ -84,7 +84,8 @@ a{
     gap:4px;
 }
 
-.navbar > a{
+.navbar > a,
+.navbar > .nav-disabled{
     min-height:62px;
     display:inline-flex;
     align-items:center;
@@ -95,6 +96,11 @@ a{
     font-size:14px;
 }
 
+.navbar > .nav-disabled{
+    cursor:default;
+    opacity:.72;
+}
+
 .navbar > a:hover,
 .navbar > a.active{
     color:#fff;
@@ -102,32 +108,67 @@ a{
 }
 
 .navbar .challenge-entry{
-    min-height:auto;
-    margin-left:8px;
-    padding:7px 9px;
-    gap:6px;
+    min-height:38px;
+    margin-left:12px;
+    padding:8px 13px;
+    gap:8px;
     color:#74ff9b;
-    border:1px solid rgba(116,255,155,.28);
-    background:#0b0f0d;
-    font:11px Consolas,"Courier New",monospace;
-    opacity:.62;
-    animation:challengeWiggle 2.4s infinite;
+    border:1px solid rgba(116,255,155,.54);
+    background:linear-gradient(180deg,#101813,#050807);
+    box-shadow:0 0 0 1px rgba(116,255,155,.08) inset,0 0 18px rgba(116,255,155,.13);
+    font:700 12px Consolas,"Courier New",monospace;
+    opacity:.82;
+    position:relative;
+    overflow:hidden;
+    animation:challengeWiggle 4.8s infinite;
 }
 
 .navbar .challenge-entry:hover{
     opacity:1;
-    border-bottom-color:rgba(116,255,155,.28);
+    color:#dfffe8;
+    border-color:rgba(116,255,155,.86);
+    border-bottom-color:rgba(116,255,155,.86);
+    background:#07100b;
+    box-shadow:0 0 0 1px rgba(116,255,155,.18) inset,0 0 26px rgba(116,255,155,.32);
+    text-shadow:0 0 10px rgba(116,255,155,.78);
+}
+
+.navbar .challenge-entry::before{
+    content:"";
+    position:absolute;
+    inset:-40% auto -40% -55%;
+    width:42%;
+    background:linear-gradient(90deg,transparent,rgba(116,255,155,.26),transparent);
+    transform:skewX(-18deg);
+    opacity:0;
+}
+
+.navbar .challenge-entry:hover::before{
+    animation:challengeScan .82s ease-out;
 }
 
 .challenge-entry strong{
-    font-size:15px;
+    width:20px;
+    height:20px;
+    display:grid;
+    place-items:center;
+    border:1px solid rgba(116,255,155,.48);
+    background:rgba(116,255,155,.08);
+    font-size:14px;
+    line-height:1;
 }
 
 @keyframes challengeWiggle{
-    0%,86%,100%{transform:translateY(0) rotate(0deg)}
-    89%{transform:translateY(-1px) rotate(-4deg)}
-    92%{transform:translateY(1px) rotate(4deg)}
-    95%{transform:translateY(-1px) rotate(-2deg)}
+    0%,88%,100%{transform:translateY(0) rotate(0deg)}
+    90%{transform:translateY(-1px) rotate(-2deg)}
+    92%{transform:translateY(1px) rotate(2deg)}
+    94%{transform:translateY(-1px) rotate(-1deg)}
+}
+
+@keyframes challengeScan{
+    0%{left:-55%;opacity:0}
+    20%{opacity:1}
+    100%{left:112%;opacity:0}
 }
 
 .hero{
@@ -243,6 +284,13 @@ a{
 .band{
     padding:72px 0;
     border-bottom:1px solid var(--line);
+}
+
+.scroll-anchor{
+    display:block;
+    position:relative;
+    top:-12px;
+    height:0;
 }
 
 .band-soft{
@@ -499,7 +547,8 @@ a{
         overflow-x:auto;
     }
 
-    .navbar > a{
+    .navbar > a,
+    .navbar > .nav-disabled{
         min-height:44px;
         padding:0 12px;
         white-space:nowrap;
@@ -507,6 +556,12 @@ a{
 
     .navbar .challenge-entry span{
         display:none;
+    }
+
+    .navbar .challenge-entry{
+        min-width:46px;
+        justify-content:center;
+        padding:8px 10px;
     }
 
     .hero{
@@ -574,9 +629,9 @@ a{
     </a>
     <nav class="navbar" aria-label="เมนูหลัก">
         <a class="active" href="index.html" aria-current="page">Home</a>
-        <a href="#path-title">Security Fundamentals</a>
+        <a href="security-fundamentals.html">Security Fundamentals</a>
         <a href="simulation.html">Simulation</a>
-        <a href="#project-title">About</a>
+        <a href="guide.html">Guide</a>
         <a class="challenge-entry" href="challenge-lab.html" aria-label="Challenge Mode" title="Challenge Mode"><strong>!</strong><span>challenge mode</span></a>
     </nav>
 </header>
@@ -589,8 +644,8 @@ a{
                 <h1 id="hero-title">Web Security Simulation Lab</h1>
                 <p class="hero-lead">พื้นที่เรียนรู้ความปลอดภัยเว็บไซต์ที่เชื่อมหลักการเข้ากับสถานการณ์จำลอง ผู้เรียนสามารถสังเกตผลกระทบ วิเคราะห์ข้อมูล และทดลองตอบสนองต่อเหตุการณ์ภายในสภาพแวดล้อมที่ออกแบบเพื่อการศึกษา</p>
                 <div class="hero-actions">
-                    <a class="button button-primary" href="#path-title">เริ่มจากเนื้อหาพื้นฐาน</a>
-                    <a class="button button-secondary" href="simulation.html">ดูห้องจำลองทั้งหมด</a>
+                    <a class="button button-primary" href="#project-overview">เริ่มจากเนื้อหาพื้นฐาน</a>
+                    <a class="button button-secondary" href="#simulation-catalog-anchor">ดูห้องจำลองทั้งหมด</a>
                 </div>
                 <div class="hero-facts" aria-label="ขอบเขตโครงการ">
                     <div><strong>3</strong><span>ประเภทเว็บไซต์จำลอง</span></div>
@@ -601,7 +656,7 @@ a{
         </div>
     </section>
 
-    <section class="band" aria-labelledby="project-title">
+    <section class="band" id="project-overview" aria-labelledby="project-title">
         <div class="section-inner">
             <div class="section-heading">
                 <div>
@@ -628,25 +683,23 @@ a{
                     <span class="path-number">01 / FUNDAMENTALS</span>
                     <h3>ทำความเข้าใจหลักการ</h3>
                     <p>เรียนรู้ข้อมูลที่ต้องปกป้อง การยืนยันตัวตน การตรวจสอบความถูกต้อง และวงจรตอบสนองต่อเหตุการณ์</p>
-                    <a class="text-link" href="#path-title">ดูเส้นทางการเรียนรู้</a>
                 </li>
                 <li>
                     <span class="path-number">02 / SIMULATE</span>
                     <h3>ทดลองในระบบจำลอง</h3>
                     <p>สลับบทบาทระหว่างผู้โจมตีและผู้ป้องกัน พร้อมตรวจผลที่เกิดขึ้นทั้งบนหน้าเว็บไซต์และข้อมูลภายในระบบ</p>
-                    <a class="text-link" href="simulation.html">เลือก Simulation</a>
                 </li>
                 <li>
                     <span class="path-number">03 / RESPOND</span>
                     <h3>รับมือภายใต้ข้อจำกัด</h3>
                     <p>วิเคราะห์เว็บไซต์แบบสุ่ม ใช้คู่มือภาคสนาม ตรวจ DATA LINK และกู้คืนระบบภายในเวลาที่กำหนด</p>
-                    <a class="text-link" href="challenge-lab.html">เข้าสู่ Challenge Mode</a>
                 </li>
             </ol>
         </div>
     </section>
 
     <section class="band" aria-labelledby="labs-title">
+        <span class="scroll-anchor" id="simulation-catalog-anchor" aria-hidden="true"></span>
         <div class="section-inner">
             <div class="section-heading">
                 <div>

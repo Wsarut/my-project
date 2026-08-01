@@ -9,8 +9,7 @@ body{margin:0;font-family:Arial,sans-serif;background:#f2f2f2;color:#222}
 .navbar{background:#222}
 .navbar a{color:white;padding:14px 20px;display:inline-block;text-decoration:none}
 .navbar a:hover{background:#444}
-.header{text-align:center;padding:15px;font-size:20px;border-bottom:1px solid #aaa;background:white}
-.lab-container{display:flex;height:calc(100vh - 100px)}
+.lab-container{display:flex;height:calc(100vh - 62px)}
 .lab-left{flex:2;border-right:1px solid #aaa;background:#e6e6e6}
 .lab-left iframe{width:100%;height:100%;border:none}
 .lab-right{flex:1;padding:22px;background:#f9f9f9;overflow:auto;box-sizing:border-box}
@@ -24,7 +23,8 @@ select,textarea,input{width:100%;box-sizing:border-box;border:1px solid #aaa;fon
 select,input{padding:9px}
 textarea{min-height:116px;padding:10px;resize:vertical;font-family:Consolas,"Courier New",monospace;font-size:13px;background:#111;color:#e8e8e8}
 .command-help{font-family:Consolas,"Courier New",monospace;font-size:12px;line-height:1.55;background:#f3f3f3;border:1px solid #ddd;padding:10px}
-.command-help code{display:block;margin:4px 0;color:#111}
+.command-help code{display:block;margin:4px 0;color:#111;cursor:pointer}
+.command-help code:hover{text-decoration:underline}
 .command-help .command-note{margin:2px 0 9px;color:#555;font-family:Arial,sans-serif;font-size:12px}
 .button-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
 button{padding:11px 12px;border:1px solid #333;background:white;cursor:pointer;font-size:14px}
@@ -59,10 +59,8 @@ button:hover{background:#e9e9e9}
 
 <header class="site-header">
     <a class="brand" href="index.html" aria-label="Web Security Simulation Lab หน้าแรก"><span class="brand-mark" aria-hidden="true">WS</span><span class="brand-name">Web Security Simulation Lab</span></a>
-    <nav class="navbar" aria-label="เมนูหลัก"><a href="index.html">Home</a><a href="index.html#path-title">Security Fundamentals</a><a class="active" href="simulation.html" aria-current="page">Simulation</a><a href="index.html#project-title">About</a></nav>
+    <nav class="navbar" aria-label="เมนูหลัก"><a href="index.html">Home</a><a href="security-fundamentals.html">Security Fundamentals</a><a class="active" href="simulation.html" aria-current="page">Simulation</a><a href="guide.html">Guide</a><a class="challenge-entry" href="challenge-lab.html" aria-label="Challenge Mode" title="Challenge Mode"><strong>!</strong><span>challenge mode</span></a></nav>
 </header>
-
-<div class="header">การจำลองเว็บขายสินค้า</div>
 
 <div class="lab-container">
     <div class="lab-left">
@@ -275,7 +273,7 @@ function renderScenarios(options){
 
 function renderCommandReference(){
     commandHelp.innerHTML = commandReference[roleSelect.value].map(function(item){
-        return "<code>" + item.command + "</code><div class=\"command-note\">" + item.note + "</div>";
+        return "<code data-command=\"" + item.command + "\">" + item.command + "</code><div class=\"command-note\">" + item.note + "</div>";
     }).join("");
 }
 
@@ -519,6 +517,14 @@ scenarioSelect.addEventListener("change", function(){
 commandInput.addEventListener("input", syncScenarioFromCommand);
 
 runCommand.addEventListener("click", runCurrentCommand);
+
+commandHelp.addEventListener("click", function(event){
+    const code = event.target.closest("code[data-command]");
+    if(!code) return;
+    commandInput.value = code.dataset.command;
+    syncScenarioFromCommand();
+    commandInput.focus();
+});
 
 clearLog.addEventListener("click", function(){
     logList.innerHTML = "<li>ยังไม่มีคำสั่งที่ถูกใช้งาน</li>";

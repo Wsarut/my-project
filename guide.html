@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="คู่มือการใช้งาน Web Security Simulation Lab สำหรับผู้ใช้ใหม่">
+<title>Guide | Web Security Simulation Lab</title>
+
+<style>
+:root{
+    --ink:#17211d;
+    --muted:#5f6a64;
+    --paper:#ffffff;
+    --soft:#f3f6f4;
+    --line:#d8e0db;
+    --green:#176b43;
+    --green-dark:#0d432b;
+    --lime:#74ff9b;
+    --nav:#111714;
+}
+
+*{
+    box-sizing:border-box;
+    letter-spacing:0;
+}
+
+html{
+    scroll-behavior:smooth;
+}
+
+body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:Arial,"Noto Sans Thai",sans-serif;
+    line-height:1.65;
+}
+
+a{
+    color:inherit;
+}
+
+.site-header{
+    min-height:62px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:24px;
+    padding:0 max(24px,calc((100vw - 1180px) / 2));
+    background:var(--nav);
+    color:#fff;
+    border-bottom:1px solid rgba(255,255,255,.14);
+    position:sticky;
+    top:0;
+    z-index:20;
+}
+
+.brand{
+    min-height:62px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    color:#fff;
+    text-decoration:none;
+    font-weight:700;
+}
+
+.brand-mark{
+    width:30px;
+    height:30px;
+    display:grid;
+    place-items:center;
+    border:1px solid rgba(116,255,155,.55);
+    color:var(--lime);
+    font:700 12px Consolas,"Courier New",monospace;
+}
+
+.brand-name{
+    font-size:14px;
+}
+
+.navbar{
+    display:flex;
+    align-items:center;
+    gap:4px;
+}
+
+.navbar > a{
+    min-height:62px;
+    display:inline-flex;
+    align-items:center;
+    padding:0 15px;
+    color:#dce3df;
+    text-decoration:none;
+    border-bottom:3px solid transparent;
+    font-size:14px;
+}
+
+.navbar > a:hover,
+.navbar > a.active{
+    color:#fff;
+    border-bottom-color:var(--lime);
+}
+
+.navbar .challenge-entry{
+    min-height:38px;
+    margin-left:12px;
+    padding:8px 13px;
+    gap:8px;
+    color:var(--lime);
+    border:1px solid rgba(116,255,155,.54);
+    background:linear-gradient(180deg,#101813,#050807);
+    box-shadow:0 0 0 1px rgba(116,255,155,.08) inset,0 0 18px rgba(116,255,155,.13);
+    font:700 12px Consolas,"Courier New",monospace;
+    opacity:.9;
+    position:relative;
+    overflow:hidden;
+    animation:challengeWiggle 4.8s infinite;
+}
+
+.navbar .challenge-entry:hover{
+    opacity:1;
+    color:#dfffe8;
+    border-color:rgba(116,255,155,.86);
+    border-bottom-color:rgba(116,255,155,.86);
+    background:#07100b;
+    box-shadow:0 0 0 1px rgba(116,255,155,.18) inset,0 0 26px rgba(116,255,155,.32);
+    text-shadow:0 0 10px rgba(116,255,155,.78);
+}
+
+.navbar .challenge-entry::before{
+    content:"";
+    position:absolute;
+    inset:-40% auto -40% -55%;
+    width:42%;
+    background:linear-gradient(90deg,transparent,rgba(116,255,155,.26),transparent);
+    transform:skewX(-18deg);
+    opacity:0;
+}
+
+.navbar .challenge-entry:hover::before{
+    animation:challengeScan .82s ease-out;
+}
+
+.challenge-entry strong{
+    width:20px;
+    height:20px;
+    display:grid;
+    place-items:center;
+    border:1px solid rgba(116,255,155,.48);
+    background:rgba(116,255,155,.08);
+    font-size:14px;
+    line-height:1;
+}
+
+@keyframes challengeWiggle{
+    0%,88%,100%{transform:translateY(0) rotate(0deg)}
+    90%{transform:translateY(-1px) rotate(-2deg)}
+    92%{transform:translateY(1px) rotate(2deg)}
+    94%{transform:translateY(-1px) rotate(-1deg)}
+}
+
+@keyframes challengeScan{
+    0%{left:-55%;opacity:0}
+    20%{opacity:1}
+    100%{left:112%;opacity:0}
+}
+
+.section-inner{
+    width:min(1180px,calc(100% - 48px));
+    margin:0 auto;
+}
+
+.page-intro{
+    padding:74px 0 60px;
+    background:#edf2ef;
+    border-bottom:1px solid var(--line);
+}
+
+.breadcrumb{
+    margin:0 0 18px;
+    color:var(--green);
+    font:700 12px Consolas,"Courier New",monospace;
+    text-transform:uppercase;
+}
+
+.page-intro-grid{
+    display:grid;
+    grid-template-columns:minmax(0,1.05fr) minmax(320px,.95fr);
+    gap:60px;
+    align-items:end;
+}
+
+.page-intro h1{
+    margin:0;
+    max-width:760px;
+    font-size:46px;
+    line-height:1.18;
+}
+
+.page-intro p{
+    margin:0;
+    color:var(--muted);
+    font-size:17px;
+}
+
+.quick-links{
+    display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    border-bottom:1px solid var(--line);
+}
+
+.quick-links a{
+    min-height:96px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:4px;
+    padding:18px 22px;
+    border-right:1px solid var(--line);
+    text-decoration:none;
+}
+
+.quick-links a:last-child{
+    border-right:0;
+}
+
+.quick-links a:hover{
+    background:#f7faf8;
+}
+
+.quick-links strong{
+    color:var(--green-dark);
+}
+
+.quick-links span{
+    color:var(--muted);
+    font-size:13px;
+}
+
+.band{
+    padding:72px 0;
+    border-bottom:1px solid var(--line);
+}
+
+.band-soft{
+    background:var(--soft);
+}
+
+.band-dark{
+    background:#15211b;
+    color:#eef5f1;
+    border-bottom-color:#24372e;
+}
+
+.section-heading{
+    display:grid;
+    grid-template-columns:minmax(220px,.72fr) minmax(0,1.28fr);
+    gap:56px;
+    align-items:start;
+}
+
+.section-kicker{
+    margin:0 0 8px;
+    color:var(--green);
+    font:700 12px Consolas,"Courier New",monospace;
+    text-transform:uppercase;
+}
+
+.band-dark .section-kicker{
+    color:#84dca4;
+}
+
+.section-heading h2{
+    margin:0;
+    font-size:32px;
+    line-height:1.28;
+}
+
+.section-heading p{
+    margin:0;
+    color:var(--muted);
+    font-size:17px;
+}
+
+.band-dark .section-heading p{
+    color:#c7d2cc;
+}
+
+.guide-layout{
+    display:grid;
+    grid-template-columns:minmax(0,1.15fr) minmax(300px,.85fr);
+    gap:28px;
+    margin-top:38px;
+}
+
+.guide-visual,
+.video-slot{
+    margin:0;
+    border:1px solid var(--line);
+    border-radius:6px;
+    background:#fff;
+    overflow:hidden;
+}
+
+.band-dark .guide-visual,
+.band-dark .video-slot{
+    border-color:rgba(132,220,164,.24);
+    background:#0b1510;
+}
+
+.guide-visual img{
+    display:block;
+    width:100%;
+    aspect-ratio:16/10;
+    object-fit:cover;
+    background:#eef2ef;
+}
+
+.guide-visual.contain img{
+    object-fit:contain;
+    padding:14px;
+}
+
+.guide-visual.tall img{
+    aspect-ratio:4/3;
+    object-fit:contain;
+    padding:14px;
+}
+
+.visual-caption{
+    padding:16px 18px;
+    color:var(--muted);
+    font-size:13px;
+}
+
+.band-dark .visual-caption{
+    color:#c7d2cc;
+}
+
+.step-list{
+    display:grid;
+    gap:12px;
+    margin:0;
+    padding:0;
+    list-style:none;
+}
+
+.step-list li{
+    padding:16px 18px;
+    border:1px solid var(--line);
+    border-left:4px solid var(--green);
+    border-radius:6px;
+    background:#fff;
+}
+
+.band-dark .step-list li{
+    border-color:rgba(132,220,164,.22);
+    border-left-color:#84dca4;
+    background:#0b1510;
+}
+
+.step-list strong{
+    display:block;
+    margin-bottom:4px;
+}
+
+.step-list span,
+.step-list p{
+    margin:0;
+    color:var(--muted);
+    font-size:13px;
+}
+
+.band-dark .step-list span,
+.band-dark .step-list p{
+    color:#c7d2cc;
+}
+
+.image-grid{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:18px;
+    margin-top:26px;
+}
+
+.workflow{
+    display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:12px;
+    margin-top:30px;
+}
+
+.workflow-card{
+    min-height:130px;
+    padding:18px;
+    border:1px solid var(--line);
+    border-radius:6px;
+    background:#fff;
+}
+
+.band-dark .workflow-card{
+    border-color:rgba(132,220,164,.22);
+    background:#0b1510;
+}
+
+.workflow-card em{
+    display:block;
+    margin-bottom:18px;
+    color:var(--green);
+    font:700 12px Consolas,"Courier New",monospace;
+    font-style:normal;
+}
+
+.band-dark .workflow-card em{
+    color:#84dca4;
+}
+
+.workflow-card strong{
+    display:block;
+    margin-bottom:6px;
+}
+
+.workflow-card span{
+    color:var(--muted);
+    font-size:13px;
+}
+
+.band-dark .workflow-card span{
+    color:#c7d2cc;
+}
+
+.video-grid{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:18px;
+    margin-top:38px;
+}
+
+.video-slot{
+    min-height:300px;
+    display:flex;
+    flex-direction:column;
+}
+
+.video-placeholder{
+    min-height:190px;
+    display:grid;
+    place-items:center;
+    background:
+        linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px),
+        linear-gradient(rgba(255,255,255,.04) 1px,transparent 1px),
+        #101813;
+    background-size:18px 18px;
+    color:var(--lime);
+    font:700 13px Consolas,"Courier New",monospace;
+}
+
+.video-placeholder span{
+    width:54px;
+    height:54px;
+    display:grid;
+    place-items:center;
+    border:1px solid rgba(116,255,155,.62);
+    background:rgba(116,255,155,.08);
+    font-size:22px;
+}
+
+.guide-video{
+    display:block;
+    width:100%;
+    aspect-ratio:16/9;
+    background:#101813;
+    border:0;
+}
+
+.video-info{
+    padding:18px;
+}
+
+.video-info strong{
+    display:block;
+    margin-bottom:6px;
+}
+
+.video-info p{
+    margin:0;
+    color:var(--muted);
+    font-size:13px;
+}
+
+.video-format-note{
+    margin:22px 0 0;
+    padding:14px 16px;
+    border:1px solid #ccd8d0;
+    border-left:4px solid var(--green);
+    border-radius:6px;
+    background:#fff;
+    color:var(--muted);
+    font-size:13px;
+}
+
+.video-format-note strong{
+    color:var(--green-dark);
+}
+
+.note-grid{
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:16px;
+    margin-top:38px;
+}
+
+.note-card{
+    min-height:170px;
+    padding:20px;
+    border:1px solid var(--line);
+    border-radius:6px;
+    background:#fff;
+}
+
+.band-dark .note-card{
+    border-color:rgba(132,220,164,.22);
+    background:#0b1510;
+}
+
+.note-card strong{
+    display:block;
+    margin-bottom:8px;
+}
+
+.note-card p{
+    margin:0;
+    color:var(--muted);
+    font-size:13px;
+}
+
+.band-dark .note-card p{
+    color:#c7d2cc;
+}
+
+.site-footer{
+    padding:28px 0;
+    background:#111714;
+    color:#cfd8d2;
+}
+
+.footer-inner{
+    display:flex;
+    justify-content:space-between;
+    gap:24px;
+    font-size:13px;
+}
+
+.footer-inner p{
+    margin:0;
+}
+
+@media (max-width:900px){
+    .site-header{
+        position:relative;
+        align-items:flex-start;
+        flex-direction:column;
+        padding:12px 24px;
+    }
+
+    .brand{
+        min-height:auto;
+    }
+
+    .navbar{
+        width:100%;
+        flex-wrap:wrap;
+    }
+
+    .navbar > a{
+        min-height:40px;
+        padding:0 10px;
+    }
+
+    .page-intro-grid,
+    .section-heading,
+    .guide-layout{
+        grid-template-columns:1fr;
+        gap:24px;
+    }
+
+    .page-intro h1{
+        font-size:36px;
+    }
+
+    .quick-links,
+    .workflow,
+    .image-grid,
+    .note-grid,
+    .video-grid{
+        grid-template-columns:1fr;
+    }
+
+    .quick-links a{
+        border-right:0;
+        border-bottom:1px solid var(--line);
+    }
+
+    .quick-links a:last-child{
+        border-bottom:0;
+    }
+
+    .footer-inner{
+        flex-direction:column;
+    }
+}
+</style>
+</head>
+
+<body>
+<header class="site-header">
+    <a class="brand" href="index.html" aria-label="Web Security Simulation Lab หน้าแรก">
+        <span class="brand-mark" aria-hidden="true">WS</span>
+        <span class="brand-name">Web Security Simulation Lab</span>
+    </a>
+    <nav class="navbar" aria-label="เมนูหลัก">
+        <a href="index.html">Home</a>
+        <a href="security-fundamentals.html">Security Fundamentals</a>
+        <a href="simulation.html">Simulation</a>
+        <a class="active" href="guide.html" aria-current="page">Guide</a>
+        <a class="challenge-entry" href="challenge-lab.html" aria-label="Challenge Mode" title="Challenge Mode"><strong>!</strong><span>challenge mode</span></a>
+    </nav>
+</header>
+
+<main>
+    <section class="page-intro" aria-labelledby="page-title">
+        <div class="section-inner">
+            <p class="breadcrumb">Guide</p>
+            <div class="page-intro-grid">
+                <h1 id="page-title">คู่มือเริ่มใช้งานเว็บไซต์จำลอง</h1>
+                <p>หน้านี้ทำหน้าที่เหมือนแผนที่สำหรับผู้ใช้ใหม่ ไล่ตั้งแต่หน้าแรก เมนูด้านบน ห้อง Simulation ไปจนถึง Challenge Mode เพื่อให้รู้ว่าต้องกดตรงไหน อ่านข้อมูลส่วนไหน และควรสังเกตอะไรระหว่างทดลอง</p>
+            </div>
+        </div>
+    </section>
+
+    <nav class="quick-links section-inner" aria-label="หัวข้อในคู่มือ">
+        <a href="#overview"><strong>ภาพรวมเว็บไซต์</strong><span>รู้ตำแหน่งเมนูหลักและเส้นทางเข้าใช้งาน</span></a>
+        <a href="#simulation-guide"><strong>Simulation</strong><span>เข้าใจห้องจำลอง, panel และการรันคำสั่ง</span></a>
+        <a href="#challenge-guide"><strong>Challenge Mode</strong><span>อ่านคู่มือกระดาษ, TOOLKIT และ DATA LINK</span></a>
+        <a href="#video-guide"><strong>วิดีโอสาธิต</strong><span>พื้นที่รอใส่คลิปตัวอย่าง 2 คลิป</span></a>
+    </nav>
+
+    <section class="band" id="overview" aria-labelledby="overview-title">
+        <div class="section-inner">
+            <div class="section-heading">
+                <div>
+                    <p class="section-kicker">Website Overview</p>
+                    <h2 id="overview-title">เริ่มจากหน้า Home แล้วเลือกเส้นทางที่ต้องการ</h2>
+                </div>
+                <p>เมื่อเปิดเว็บครั้งแรก ให้มองแถบเมนูด้านบนเป็นหลัก เพราะเป็นจุดนำทางไปยังทุกส่วนของเว็บไซต์ ได้แก่หน้าเนื้อหาพื้นฐาน หน้าเลือกห้องจำลอง หน้า Guide และปุ่ม Challenge Mode ที่อยู่ด้านขวา</p>
+            </div>
+
+            <div class="guide-layout">
+                <figure class="guide-visual">
+                    <img src="assets/guide/guide-01-home-navigation.jpg" alt="หน้า Home ที่ชี้ตำแหน่งเมนู Security Fundamentals">
+                    <figcaption class="visual-caption">ตัวอย่างหน้า Home: ใช้เมนูด้านบนเพื่อไปยัง Security Fundamentals, Simulation, Guide หรือ Challenge Mode</figcaption>
+                </figure>
+                <ol class="step-list">
+                    <li><strong>1. Home</strong><span>อ่านภาพรวมว่าเว็บนี้เป็น Lab จำลองด้านความปลอดภัย ไม่ใช่ระบบโจมตีจริง และใช้เพื่อฝึกสังเกตเหตุการณ์เท่านั้น</span></li>
+                    <li><strong>2. Security Fundamentals</strong><span>เหมาะสำหรับคนที่ยังไม่มั่นใจศัพท์พื้นฐาน เช่น การโจมตี การป้องกัน การตรวจสอบความผิดปกติ และการอ่าน log</span></li>
+                    <li><strong>3. Simulation</strong><span>เลือกเว็บจำลอง 1 ใน 3 แบบ แล้วทดลองทั้งบทบาทฝ่ายโจมตีและฝ่ายป้องกันแบบไม่มีเวลาบังคับ</span></li>
+                    <li><strong>4. Challenge Mode</strong><span>เข้าสู่โหมดท้าทายแบบสุ่มสถานการณ์ มีเฉพาะบทบาทฝ่ายป้องกัน และต้องอ่านอาการจากเว็บประกอบกับเครื่องมือในจอ</span></li>
+                </ol>
+            </div>
+
+            <div class="image-grid">
+                <figure class="guide-visual contain">
+                    <img src="assets/guide/guide-02-security-fundamentals.png" alt="หน้า Security Fundamentals">
+                    <figcaption class="visual-caption">Security Fundamentals เป็นหน้าปูพื้นฐานก่อนเข้า Lab ช่วยให้เข้าใจสิ่งที่ panel และ log พยายามบอก</figcaption>
+                </figure>
+                <figure class="guide-visual contain">
+                    <img src="assets/guide/guide-04-video-area.png" alt="พื้นที่วิดีโอสาธิตในหน้า Guide">
+                    <figcaption class="visual-caption">หน้า Guide เตรียมพื้นที่สำหรับวิดีโอสาธิตไว้แล้ว เพื่อเพิ่มคลิปอธิบายภายหลังโดยไม่ต้องเปลี่ยนโครงใหม่</figcaption>
+                </figure>
+            </div>
+        </div>
+    </section>
+
+    <section class="band band-soft" id="simulation-guide" aria-labelledby="simulation-title">
+        <div class="section-inner">
+            <div class="section-heading">
+                <div>
+                    <p class="section-kicker">Simulation</p>
+                    <h2 id="simulation-title">วิธีเข้าและอ่านห้องจำลองเว็บไซต์</h2>
+                </div>
+                <p>Simulation เป็นโหมดฝึกแบบเปิด ผู้ใช้สามารถเลือก Lab เอง เลือกบทบาทโจมตีหรือป้องกันเอง และทดลองคำสั่งได้หลายครั้ง เหมาะสำหรับทำความเข้าใจก่อนเข้า Challenge Mode</p>
+            </div>
+
+            <div class="guide-layout">
+                <figure class="guide-visual">
+                    <img src="assets/guide/guide-06-simulation-catalog.jpg" alt="หน้าเลือกห้องจำลอง Simulation">
+                    <figcaption class="visual-caption">หน้า Simulation Catalog จะมีการ์ดห้องจำลอง 3 ห้อง ได้แก่เว็บข่าวสาร เว็บขายสินค้า และเว็บขายตั๋ว</figcaption>
+                </figure>
+                <ol class="step-list">
+                    <li><strong>1. กดเมนู Simulation</strong><span>ระบบจะพามายังหน้ารวม Lab ทั้งหมด ไม่ต้องเริ่มจาก Challenge Mode</span></li>
+                    <li><strong>2. เลือกการ์ดเว็บไซต์จำลอง</strong><span>แต่ละเว็บมีลักษณะความเสี่ยงต่างกัน: ข่าวสารเน้นเนื้อหา, ร้านค้าเน้นข้อมูลลูกค้า/คำสั่งซื้อ, เว็บตั๋วเน้นจำนวนตั๋ว/คิวซื้อ</span></li>
+                    <li><strong>3. สังเกตสองฝั่งของหน้าจอ</strong><span>ฝั่งซ้ายคือเว็บไซต์ใน iframe ส่วนฝั่งขวาคือ panel ที่ใช้ควบคุมสถานการณ์และอ่านผลที่เกิดขึ้น</span></li>
+                    <li><strong>4. รีเซ็ตเมื่ออยากเริ่มใหม่</strong><span>แต่ละ Lab มีคำสั่งฝ่ายป้องกันสำหรับกู้คืนหรือรีเซ็ตผลจำลอง เมื่อรีเฟรชหน้า Lab จะเริ่มจากสถานะปกติของผู้ใช้คนนั้น</span></li>
+                </ol>
+            </div>
+
+            <div class="workflow" aria-label="ลำดับการใช้ห้อง Simulation">
+                <article class="workflow-card"><em>STEP 01</em><strong>Mission Console</strong><span>เลือกบทบาทและรูปแบบสถานการณ์ที่อยากทดลอง</span></article>
+                <article class="workflow-card"><em>STEP 02</em><strong>Command Reference</strong><span>กดคำสั่งตัวอย่างหรืออ่านคำสั่งที่ใช้ได้ในบทบาทนั้น</span></article>
+                <article class="workflow-card"><em>STEP 03</em><strong>Command Input</strong><span>พิมพ์หรือวางคำสั่ง จากนั้นกด Run Command</span></article>
+                <article class="workflow-card"><em>STEP 04</em><strong>Situation / Log</strong><span>อ่านผลลัพธ์ แล้วกลับไปสังเกตเว็บไซต์ใน iframe ว่าเปลี่ยนตรงไหน</span></article>
+            </div>
+
+            <div class="image-grid">
+                <figure class="guide-visual">
+                    <img src="assets/guide/guide-07-lab-overview.jpg" alt="ตัวอย่างหน้าห้องจำลองที่มี iframe และ panel">
+                    <figcaption class="visual-caption">ตัวอย่างห้อง Lab: เว็บไซต์จำลองอยู่ด้านซ้าย และเครื่องมือปฏิบัติการอยู่ด้านขวา</figcaption>
+                </figure>
+                <figure class="guide-visual">
+                    <img src="assets/guide/guide-08-command-panel.jpg" alt="ตัวอย่าง Command Input Situation Panel และ Operation Log">
+                    <figcaption class="visual-caption">หลังรันคำสั่ง ให้ดูทั้ง Situation Panel และ Operation Log ประกอบกัน ไม่ควรดูเฉพาะหน้าเว็บอย่างเดียว</figcaption>
+                </figure>
+            </div>
+        </div>
+    </section>
+
+    <section class="band band-dark" id="challenge-guide" aria-labelledby="challenge-title">
+        <div class="section-inner">
+            <div class="section-heading">
+                <div>
+                    <p class="section-kicker">Challenge Mode</p>
+                    <h2 id="challenge-title">โหมดท้าทายสำหรับฝึกป้องกันแบบจับสถานการณ์เอง</h2>
+                </div>
+                <p>Challenge Mode จะสุ่มเว็บไซต์และสุ่มเหตุการณ์โจมตี ผู้ใช้รับบทเป็นฝ่ายป้องกันเท่านั้น จุดสำคัญคือระบบไม่ได้เฉลยทันทีว่าต้องใช้คำสั่งไหน ผู้ใช้ต้องอ่านอาการจากเว็บ ดู DATA LINK CONSOLE และเทียบกับคู่มือกระดาษเพื่อเลือกคำสั่งให้ตรงสถานการณ์</p>
+            </div>
+
+            <div class="guide-layout">
+                <figure class="guide-visual">
+                    <img src="assets/guide/guide-10-challenge-briefing.jpg" alt="หน้าชี้แจงกฎก่อนเริ่ม Challenge Mode">
+                    <figcaption class="visual-caption">ก่อนเริ่ม ระบบจะแสดงกฎและบทบาทของผู้เล่น เมื่อพร้อมจึงกดเริ่มการท้าทาย</figcaption>
+                </figure>
+                <ol class="step-list">
+                    <li><strong>1. เข้าผ่านปุ่ม challenge mode</strong><span>ปุ่มนี้อยู่บนแถบเมนูหลักด้านขวา ใช้เข้าโหมดท้าทายโดยตรง</span></li>
+                    <li><strong>2. อ่านหน้าชี้แจงก่อนเริ่ม</strong><span>ทำความเข้าใจว่าคุณเป็นฝ่ายป้องกัน และต้องเลือกแนวทางกู้คืนจากหลักฐานที่เห็น</span></li>
+                    <li><strong>3. เปิดคู่มือกระดาษ</strong><span>คู่มือกระดาษไม่ได้เฉลยสถานการณ์ แต่ช่วยบอกลำดับคิดและ keyword ที่ควรไปหาใน DEFENSE TOOLKIT</span></li>
+                    <li><strong>4. ตรวจ DATA LINK CONSOLE</strong><span>ใช้ดูข้อมูลภายในระบบ เช่น content, customer, order, inventory หรือ identity เพื่อหาว่าความผิดปกติมาจากจุดไหน</span></li>
+                    <li><strong>5. ระวังคำสั่งผิด</strong><span>ถ้าใช้คำสั่งผิด ระบบจะรบกวนจอและอาจมี mini game ให้ต่อสาย เพื่อจำลองความเสียเวลาจากการแก้ผิดทาง</span></li>
+                </ol>
+            </div>
+
+            <div class="image-grid">
+                <figure class="guide-visual contain">
+                    <img src="assets/guide/guide-12-paper-manual.jpg" alt="คู่มือกระดาษใน Challenge Mode">
+                    <figcaption class="visual-caption">คู่มือกระดาษเป็นตัวช่วยจำแนวคิด แยกตามเว็บไซต์และสถานการณ์ ไม่ใช่ปุ่มคำตอบสำเร็จรูป</figcaption>
+                </figure>
+                <figure class="guide-visual">
+                    <img src="assets/guide/guide-13-challenge-tools.jpg" alt="panel เครื่องมือใน Challenge Mode">
+                    <figcaption class="visual-caption">ฝั่งขวาของ Challenge Mode รวม Mission Console, DEFENSE TOOLKIT, Command Input, Situation Panel และ Operation Log</figcaption>
+                </figure>
+            </div>
+
+            <div class="workflow" aria-label="ลำดับคิดใน Challenge Mode">
+                <article class="workflow-card"><em>SCAN</em><strong>ดูอาการ</strong><span>สังเกตเว็บหลักและ log ว่าเริ่มผิดปกติแบบไหน</span></article>
+                <article class="workflow-card"><em>MAP</em><strong>เปิด DATA LINK</strong><span>โฟกัสข้อมูลภายในที่เกี่ยวกับเว็บนั้น เช่น customer หรือ inventory</span></article>
+                <article class="workflow-card"><em>VERIFY</em><strong>เทียบคู่มือ</strong><span>ใช้ keyword จากกระดาษไปหาคำสั่งใน DEFENSE TOOLKIT</span></article>
+                <article class="workflow-card"><em>RESTORE</em><strong>กู้คืนและตรวจซ้ำ</strong><span>หลังป้องกันแล้วต้องตรวจหลังป้องกันก่อนจึงถือว่าจบสมบูรณ์</span></article>
+            </div>
+
+            <div class="image-grid">
+                <figure class="guide-visual contain">
+                    <img src="assets/guide/guide-14-challenge-live.jpg" alt="Challenge Mode ขณะกำลังสุ่มเว็บไซต์และสถานการณ์">
+                    <figcaption class="visual-caption">เมื่อเริ่มแล้ว ระบบจะสุ่มเป้าหมายและค่อย ๆ แสดงอาการโจมตี ไม่จำเป็นต้องเกิดเต็มหน้าทันที</figcaption>
+                </figure>
+                <figure class="guide-visual contain">
+                    <img src="assets/guide/guide-15-defense-toolkit.jpg" alt="DEFENSE TOOLKIT ใน Challenge Mode">
+                    <figcaption class="visual-caption">DEFENSE TOOLKIT รวมคำสั่งจำนวนมาก ผู้ใช้ต้องเลือกตามสถานการณ์ ไม่ใช่ไล่ใช้ทุกคำสั่ง</figcaption>
+                </figure>
+                <figure class="guide-visual contain">
+                    <img src="assets/guide/guide-16-data-link-map.jpg" alt="DATA LINK CONSOLE แบบแผนที่ข้อมูล">
+                    <figcaption class="visual-caption">DATA LINK CONSOLE ใช้เปิดดูจุดข้อมูลภายในระบบ ช่วยให้เว็บขายสินค้าและเว็บขายตั๋วเห็นอาการหลังบ้านชัดขึ้น</figcaption>
+                </figure>
+                <figure class="guide-visual contain">
+                    <img src="assets/guide/guide-18-cable-minigame.jpg" alt="mini game ต่อสายเมื่อเกิดความผิดพลาด">
+                    <figcaption class="visual-caption">เมื่อใช้คำสั่งผิด ระบบอาจขึ้น mini game ต่อสายสีให้ตรงกันเพื่อกลับสู่จอปกติ เป็นการจำลองต้นทุนของความผิดพลาด</figcaption>
+                </figure>
+            </div>
+
+            <div class="note-grid">
+                <article class="note-card"><strong>ข่าวสาร</strong><p>มองหาเนื้อหาข่าวหรือหน้าแรกที่ผิดน้ำเสียง จากนั้นตรวจ content/integrity ใน DATA LINK</p></article>
+                <article class="note-card"><strong>ขายสินค้า</strong><p>มองหาอาการเกี่ยวกับข้อมูลลูกค้า คำสั่งซื้อ หรือราคา แล้วใช้ DATA LINK ตรวจ customer/order/checkout</p></article>
+                <article class="note-card"><strong>ขายตั๋ว</strong><p>มองหาอาการตั๋วหมดเร็ว ตั๋วเกินจำนวน หรือคิวผิดปกติ แล้วตรวจ inventory/queue/identity</p></article>
+            </div>
+        </div>
+    </section>
+
+    <section class="band band-soft" id="video-guide" aria-labelledby="video-title">
+        <div class="section-inner">
+            <div class="section-heading">
+                <div>
+                    <p class="section-kicker">Demo Videos</p>
+                    <h2 id="video-title">พื้นที่สำหรับวิดีโอสาธิต 2 คลิป</h2>
+                </div>
+                <p>ส่วนนี้เตรียมไว้สำหรับใส่วิดีโอภายหลัง แนวทางที่เหมาะคือแยกเป็น 2 คลิป: คลิปแรกอธิบายการใช้ Simulation แบบปกติ และคลิปที่สองอธิบาย Challenge Mode ตั้งแต่เริ่มสุ่มสถานการณ์จนถึงหน้าสรุปผล</p>
+            </div>
+
+            <p class="video-format-note"><strong>หมายเหตุ:</strong> วิดีโอสาธิตมีความคมชัด 720p เนื่องจากต้องปฏิบัติตามข้อกำหนดและเงื่อนไขของ PaaS (Platform as a Service) รวมถึงข้อจำกัดด้านขนาดไฟล์สำหรับการอัปโหลด ภาพอาจไม่คมเท่าไฟล์ต้นฉบับ แต่ยังคงเสียงไว้ที่ 128kbps เพื่อให้ฟังคำอธิบายได้ชัดเจนขึ้น</p>
+
+            <div class="video-grid">
+                <article class="video-slot">
+                    <video class="guide-video" controls preload="metadata" playsinline poster="assets/videos/simulation-guide-poster.jpg" aria-label="วิดีโอสาธิตการใช้งาน Simulation">
+                        <source src="assets/videos/simulation-guide.mp4" type="video/mp4">
+                    </video>
+                    <div class="video-info">
+                        <strong>คลิปที่ 1: วิธีใช้งาน Simulation</strong>
+                        <p>แนะนำการเลือก Lab, เลือกบทบาท, กดคำสั่งจาก Command Reference, รันคำสั่ง และอ่านผลจาก Situation Panel กับ Operation Log</p>
+                    </div>
+                </article>
+                <article class="video-slot">
+                    <video class="guide-video" controls preload="metadata" playsinline poster="assets/videos/challenge-guide-poster.jpg" aria-label="วิดีโอสาธิตการใช้งาน Challenge Mode">
+                        <source src="assets/videos/challenge-guide.mp4" type="video/mp4">
+                    </video>
+                    <div class="video-info">
+                        <strong>คลิปที่ 2: วิธีเล่น Challenge Mode</strong>
+                        <p>แนะนำการอ่านกฎก่อนเริ่ม เปิดคู่มือกระดาษ เลือกคำสั่งจาก DEFENSE TOOLKIT ใช้ DATA LINK CONSOLE และจัดการ mini game เมื่อใช้คำสั่งผิด</p>
+                    </div>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <section class="band" aria-labelledby="tips-title">
+        <div class="section-inner">
+            <div class="section-heading">
+                <div>
+                    <p class="section-kicker">Before You Start</p>
+                    <h2 id="tips-title">คำแนะนำสั้น ๆ ก่อนให้ผู้ใช้ทดลอง</h2>
+                </div>
+                <p>เว็บนี้ออกแบบให้ผู้ใช้เรียนรู้จากการสังเกต ไม่ใช่จากการเฉลยตรง ๆ ทุกจุด ดังนั้นควรชวนผู้ใช้ดูทั้งหน้าเว็บจำลอง panel และ log ประกอบกัน โดยเฉพาะ Challenge Mode ที่ต้องวิเคราะห์สถานการณ์ก่อนเลือกคำสั่ง</p>
+            </div>
+
+            <div class="note-grid">
+                <article class="note-card"><strong>เริ่มจาก Simulation ก่อน</strong><p>ถ้าผู้ใช้ไม่เคยเล่น ให้ลอง Simulation อย่างน้อยหนึ่ง Lab เพื่อเข้าใจโครง panel ก่อนเข้า Challenge Mode</p></article>
+                <article class="note-card"><strong>อ่าน log ควบคู่กับหน้าเว็บ</strong><p>บางเหตุการณ์ไม่ได้เห็นชัดบนหน้าเว็บทันที โดยเฉพาะเว็บขายสินค้าและเว็บขายตั๋วที่มีอาการอยู่หลังบ้าน</p></article>
+                <article class="note-card"><strong>ใช้เฉพาะพื้นที่จำลอง</strong><p>คำสั่งและสถานการณ์ทั้งหมดในเว็บนี้เป็นสื่อการเรียนรู้ใน Lab ที่ได้รับอนุญาต ไม่ใช่คำแนะนำสำหรับนำไปใช้กับระบบจริง</p></article>
+            </div>
+        </div>
+    </section>
+</main>
+
+<footer class="site-footer">
+    <div class="section-inner footer-inner">
+        <p><strong>Web Security Simulation Lab</strong> - คู่มือการใช้งานเว็บไซต์จำลอง</p>
+        <p>เตรียมพื้นที่วิดีโอไว้สำหรับคลิปสาธิต Simulation และ Challenge Mode</p>
+    </div>
+</footer>
+</body>
+</html>
