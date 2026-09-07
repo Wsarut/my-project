@@ -567,7 +567,18 @@ a{
         <div class="readiness-item"><strong>ข้อมูลต้องไม่ถูกเปลี่ยนโดยไม่มีหลักฐาน</strong><span>เนื้อหา ราคา inventory และสถานะธุรกรรมต้องตรวจย้อนกลับได้</span></div>
         <div class="readiness-item"><strong>ระบบต้องฟื้นตัวได้อย่างมีขั้นตอน</strong><span>การกู้คืนควรมาจากการตรวจขอบเขต ยืนยันหลักฐาน และคืนค่าที่เชื่อถือได้</span></div>
     </div>
-
+        <section class="band band-soft" id="project-overview" aria-labelledby="project-title">
+        <div class="section-inner">
+            <div class="section-heading">
+                <div>
+                    <p class="section-kicker">Project Overview</p>
+                    <h2 id="project-title">เรียนรู้จากสิ่งที่เกิดขึ้นกับระบบ ไม่ใช่เพียงจำชื่อภัยคุกคาม</h2>
+                </div>
+                <p>โครงการนี้จัดทำขึ้นเพื่อช่วยให้ผู้เรียนเข้าใจความสัมพันธ์ระหว่างพฤติกรรมผิดปกติ ผลกระทบที่ผู้ใช้งานมองเห็น และข้อมูลหลังบ้านที่ผู้ดูแลระบบใช้ตัดสินใจ เนื้อหาครอบคลุมเว็บไซต์ข่าวสาร ร้านค้าออนไลน์ และระบบจำหน่ายตั๋ว ซึ่งมีข้อมูลและความเสี่ยงต่างกันอย่างชัดเจน</p>
+            </div>
+            <div class="scope-note"><strong>ขอบเขตเพื่อการศึกษา:</strong> เว็บไซต์ บัญชีผู้ใช้ ข้อมูลลูกค้า คำสั่งซื้อ การชำระเงิน และบัตรเข้างานทั้งหมดในโครงการเป็นข้อมูลจำลอง ไม่มีการเชื่อมต่อธุรกรรมจริง และไม่ควรนำคำสั่งหรือแนวทางไปใช้กับระบบที่ไม่ได้รับอนุญาต</div>
+        </div>
+    </section>
     <section class="band band-soft" aria-labelledby="simulation-flow-title">
         <div class="section-inner">
             <div class="section-heading">
@@ -642,7 +653,31 @@ a{
             </div>
         </div>
     </section>
-
+    <section class="band band-dark" aria-labelledby="principles-title">
+        <div class="section-inner">
+            <div class="section-heading">
+                <div>
+                    <p class="section-kicker">Security Principles</p>
+                    <h2 id="principles-title">มองความปลอดภัยผ่านคุณสมบัติของข้อมูล</h2>
+                </div>
+                <p>สถานการณ์ในโครงการไม่ได้วัดเพียงว่าเว็บไซต์เปิดได้หรือไม่ แต่ชวนตรวจว่าข้อมูลถูกเปิดเผย ถูกเปลี่ยน หรือไม่พร้อมให้ผู้ใช้ที่ควรเข้าถึงหรือไม่</p>
+            </div>
+            <div class="principle-grid">
+                <article class="principle">
+                    <h3>Confidentiality</h3>
+                    <p>ข้อมูลลูกค้า บัญชี และ session ต้องเข้าถึงได้เฉพาะบุคคลและระบบที่ได้รับอนุญาต</p>
+                </article>
+                <article class="principle">
+                    <h3>Integrity</h3>
+                    <p>เนื้อหา ราคา คำสั่งซื้อ และจำนวนตั๋วต้องตรวจสอบย้อนกลับและเทียบกับแหล่งข้อมูลที่เชื่อถือได้</p>
+                </article>
+                <article class="principle">
+                    <h3>Availability</h3>
+                    <p>ระบบต้องพร้อมให้ผู้ใช้ทั่วไปเข้าถึงได้ แม้เผชิญคำขอผิดปกติหรือเหตุการณ์ที่กระทบทรัพยากร</p>
+                </article>
+            </div>
+        </div>
+    </section>
     <section class="band band-dark" aria-labelledby="response-title">
         <div class="section-inner">
             <div class="section-heading">
